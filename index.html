@@ -234,18 +234,28 @@ function speak(text, lang, cb){
   }catch(e){ cb&&cb(); }
 }
 
-/* ---------- audio grabado (carpeta ./audio) con la voz del telefono de respaldo ---------- */
-let AUDIO_OK=null, AUDIO_VOICE='', curAudio=null;
+/* ---------- audio grabado (carpeta ./audio) con la voz del telefono de respaldo ----------
+   iOS solo deja reproducir sin toque un elemento <audio> que YA fue desbloqueado por un toque.
+   Por eso reutilizamos UN solo elemento en vez de crear uno nuevo por clip. ---------------- */
+let AUDIO_OK=null, AUDIO_VOICE='', playToken=0, LASTCLIP='', LASTERR='';
 const pad3=n=>String(n).padStart(3,'0');
 const clipURL=id=>'audio/'+id+'.m4a';
+
+const AUD=(()=>{ try{
+  const a=new Audio(); a.preload='auto';
+  a.setAttribute('playsinline',''); a.setAttribute('webkit-playsinline','');
+  a.onloadedmetadata=()=>{ try{ a.playbackRate=Math.min(2,Math.max(0.5,S.rate)); }catch(e){} };
+  return a;
+}catch(e){ return null; } })();
+
 function probeAudio(){
   return new Promise(res=>{
     let done=false; const fin=v=>{ if(done)return; done=true; AUDIO_OK=v; res(v); };
     try{
-      const a=new Audio(); a.preload='metadata';
-      a.addEventListener('loadedmetadata',()=>fin(true),{once:true});
-      a.addEventListener('error',()=>fin(false),{once:true});
-      a.src=clipURL('q001');
+      const t=new Audio(); t.preload='metadata';
+      t.addEventListener('loadedmetadata',()=>fin(true),{once:true});
+      t.addEventListener('error',()=>fin(false),{once:true});
+      t.src=clipURL('q001');
     }catch(e){ fin(false); }
     setTimeout(()=>fin(false),6000);
   });
@@ -253,19 +263,45 @@ function probeAudio(){
 if(/^https?:/.test(location.protocol)){
   fetch('audio/voz.txt').then(r=>r.ok?r.text():'').then(t=>{AUDIO_VOICE=(t||'').trim()}).catch(()=>{});
 }
-function stopAudio(){ if(curAudio){ try{curAudio.pause()}catch(e){} curAudio=null; } }
+
+/* desbloqueo de medios: iOS exige un gesto real la primera vez */
+let spUnlocked=false, audUnlocked=false;
+function unlockMedia(){
+  if(!spUnlocked && window.speechSynthesis){
+    spUnlocked=true;
+    try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch(e){}
+  }
+  if(!audUnlocked && AUD && !AUD.src){
+    audUnlocked=true;
+    try{
+      AUD.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAIA+AAABAAgAZGF0YQAAAAA=';
+      const p=AUD.play();
+      if(p&&p.then) p.then(()=>{ if(String(AUD.src).indexOf('data:')===0){ try{AUD.pause()}catch(e){} } }).catch(()=>{});
+    }catch(e){}
+  }
+}
+document.addEventListener('touchend',unlockMedia);
+document.addEventListener('click',unlockMedia);
+
+function stopAudio(){ playToken++; if(AUD){ try{ AUD.pause(); }catch(e){} } }
 function stopAll(){ stopSpeak(); stopAudio(); }
+
 function say(id, text, cb){
   stopAll();
-  if(AUDIO_OK && id){
-    let done=false;
-    const a=new Audio(clipURL(id)); curAudio=a;
-    a.playbackRate=Math.min(2,Math.max(0.5,S.rate));
-    const fin=()=>{ if(done)return; done=true; if(curAudio===a)curAudio=null; cb&&cb(); };
-    const fall=()=>{ if(done)return; done=true; if(curAudio===a)curAudio=null; speak(text,'en',cb); };
-    a.onended=fin; a.onerror=fall;
-    try{ const pr=a.play(); if(pr&&pr.catch) pr.catch(fall); }catch(e){ fall(); }
-    setTimeout(()=>{ if(!done) fin(); },30000);
+  if(AUDIO_OK && id && AUD){
+    const tok=++playToken; let done=false;
+    LASTCLIP=id;
+    const fin =()=>{ if(done||tok!==playToken)return; done=true; cb&&cb(); };
+    const fall=w=>{ if(done||tok!==playToken)return; done=true; LASTERR=id+' \u2192 '+w; speak(text,'en',cb); };
+    AUD.onended =()=>fin();
+    AUD.onerror =()=>fall('no carg\u00f3');
+    try{
+      AUD.src=clipURL(id);
+      try{ AUD.playbackRate=Math.min(2,Math.max(0.5,S.rate)); }catch(e){}
+      const pr=AUD.play();
+      if(pr&&pr.catch) pr.catch(()=>fall('bloqueado por el navegador'));
+    }catch(e){ fall('excepci\u00f3n'); }
+    setTimeout(()=>{ if(!done&&tok===playToken) fin(); },30000);
     return;
   }
   speak(text,'en',cb);
@@ -482,6 +518,7 @@ async function keepAwake(on){
 let hum=null;
 function humOn(on){
   try{
+    if(on && AUDIO_OK===true) return;
     if(on){
       if(!hum){
         hum=new Audio('data:audio/wav;base64,UklGRqQMAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YYAMAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==');
@@ -709,10 +746,15 @@ function Settings(){
       Safari no deja que una página web use las voces premium del iPhone, aunque estén descargadas.
       Para que suene natural hay que incluir clips de audio grabados junto a la app.</p>`));
   }
-  const test=$(`<button class="btn ghost sm">🔊 Probar el audio</button>`);
+  const test=$(`<button class="btn ghost sm">🔊 Probar pregunta + respuesta</button>`);
   test.onclick=()=>{ say('q042','Who is Commander in Chief of the U.S. military?',
                         ()=>say('a042','The President of the United States')); };
   t2b.append(test);
+  const diag=$(`<p class="small" style="text-align:left;margin:10px 0 0;opacity:.65"></p>`);
+  diag.textContent='Diagn\u00f3stico \u2014 clips: '+(AUDIO_OK===true?'s\u00ed':AUDIO_OK===false?'no':'\u2026')
+    +' \u00b7 \u00faltimo clip: '+(LASTCLIP||'\u2014')
+    +(LASTERR?' \u00b7 \u00faltimo fallo: '+LASTERR:' \u00b7 sin fallos');
+  t2b.append(diag);
   view.append(t2b);
 
   const t3=$(`<div class="tile"><h3>Datos</h3></div>`);
