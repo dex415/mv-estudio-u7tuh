@@ -1,0 +1,5 @@
+generar-audio.sh
+subir-a-github.sh
+audio-textos.tsv
+.DS_Store
+*.aiff
