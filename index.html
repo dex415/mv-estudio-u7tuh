@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1b2a">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="bingbot" content="noindex, nofollow">
+<title>Ciudadanía 128 — Práctica</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%230d1b2a'/%3E%3Ctext x='90' y='118' font-size='90' text-anchor='middle' fill='%23e0b243' font-family='Georgia,serif'%3E128%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0d1b2a; --bg2:#132a41; --card:#1b3a5c; --line:#2c5580;
+  --ink:#f3f6fa; --dim:#a8bed6; --gold:#e0b243; --good:#3fb96b; --bad:#e05c5c;
+  --blue:#4a90d9;
+  --pad: env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.45; overscroll-behavior:none;
+  -webkit-text-size-adjust:100%;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.app{max-width:620px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg2);
+     border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.bar h1{font-size:16px;margin:0;font-weight:600;flex:1;letter-spacing:.2px}
+.bar .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+         font-size:19px;background:#ffffff12}
+.bar .ic:active{background:#ffffff25}
+.prog{height:4px;background:#ffffff18}
+.prog i{display:block;height:100%;background:var(--gold);transition:width .25s}
+
+/* ---------- generic ---------- */
+.wrap{flex:1;padding:16px 14px calc(28px + var(--pad));display:flex;flex-direction:column;gap:14px}
+.hero{text-align:center;padding:20px 6px 4px}
+.hero .n{font-size:54px;font-weight:800;color:var(--gold);line-height:1;font-family:Georgia,serif}
+.hero h2{margin:6px 0 2px;font-size:20px}
+.hero p{margin:0;color:var(--dim);font-size:14px}
+
+.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.tile h3{margin:0 0 10px;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:700}
+
+.btn{display:block;width:100%;padding:15px 16px;border-radius:14px;background:var(--blue);
+     font-weight:650;font-size:17px;text-align:center;margin-top:10px}
+.btn:active{transform:scale(.985)}
+.btn.gold{background:var(--gold);color:#14243a}
+.btn.ghost{background:#ffffff10;border:1px solid var(--line)}
+.btn.sm{padding:11px;font-size:15px;margin-top:8px}
+
+.modes{display:grid;gap:10px}
+.mode{display:flex;gap:12px;align-items:center;text-align:left;padding:14px;border-radius:14px;
+      background:#ffffff0d;border:1px solid var(--line);width:100%}
+.mode.on{border-color:var(--gold);background:#e0b2431f}
+.mode .em{font-size:24px;width:30px;text-align:center;flex:none}
+.mode b{display:block;font-size:16px}
+.mode span{display:block;color:var(--dim);font-size:13px;line-height:1.3}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;
+     border-bottom:1px solid #ffffff14}
+.row:last-child{border-bottom:0}
+.row .lbl b{display:block;font-size:15px;font-weight:600}
+.row .lbl span{display:block;color:var(--dim);font-size:12.5px}
+
+/* switch */
+.sw{width:50px;height:30px;border-radius:15px;background:#ffffff22;position:relative;flex:none;transition:background .18s}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:12px;background:#fff;transition:left .18s}
+.sw.on{background:var(--good)} .sw.on i{left:23px}
+
+/* stepper */
+.step{display:flex;align-items:center;gap:6px;flex:none}
+.step button{width:34px;height:34px;border-radius:9px;background:#ffffff18;font-size:19px;font-weight:600;
+             display:flex;align-items:center;justify-content:center}
+.step button:active{background:#ffffff30}
+.step .v{min-width:56px;text-align:center;font-variant-numeric:tabular-nums;font-weight:650;font-size:15px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 13px;border-radius:20px;background:#ffffff10;border:1px solid var(--line);font-size:13.5px}
+.chip.on{background:var(--gold);color:#14243a;border-color:var(--gold);font-weight:650}
+
+/* ---------- card ---------- */
+.qmeta{display:flex;justify-content:space-between;align-items:center;color:var(--dim);font-size:13px}
+.qmeta .sec{font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;flex:1;
+      display:flex;flex-direction:column;justify-content:center;min-height:210px}
+.q{font-size:23px;font-weight:600;line-height:1.32}
+.ph{color:var(--gold);font-size:15.5px;font-style:italic;margin-top:9px;line-height:1.35}
+.es{color:var(--dim);font-size:15.5px;margin-top:7px;line-height:1.35}
+.warn{margin-top:12px;background:#e0b2431f;border:1px solid #e0b24355;border-radius:10px;
+      padding:9px 11px;font-size:13px;color:var(--gold)}
+
+.ans{background:#0f2740;border:1px solid var(--line);border-radius:16px;padding:14px}
+.ans h4{margin:0 0 9px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--good);font-weight:700}
+.ai{padding:9px 0;border-bottom:1px solid #ffffff10}
+.ai:last-child{border-bottom:0}
+.ai .en{font-weight:600;font-size:17px}
+.ai .p{color:var(--gold);font-size:14px;font-style:italic}
+.ai .s{color:var(--dim);font-size:14px}
+.more{color:var(--dim);font-size:13px;padding-top:8px;text-align:center}
+
+.speak{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;
+       background:#ffffff12;font-size:14px;margin-top:12px}
+.speak:active{background:#ffffff25}
+
+.grade{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.grade button{padding:16px;border-radius:14px;font-weight:700;font-size:16px}
+.g-no{background:#e05c5c26;border:1px solid #e05c5c88;color:#ffb3b3}
+.g-yes{background:#3fb96b26;border:1px solid #3fb96b88;color:#a5edc0}
+
+.opts{display:grid;gap:9px;margin-top:4px}
+.opt{text-align:left;padding:14px;border-radius:13px;background:#ffffff0d;border:1.5px solid var(--line);
+     font-size:16px;line-height:1.3}
+.opt.right{background:#3fb96b2e;border-color:var(--good)}
+.opt.wrong{background:#e05c5c2e;border-color:var(--bad)}
+.opt small{display:block;color:var(--gold);font-style:italic;font-size:13px;margin-top:3px}
+
+.cd{text-align:center;font-size:15px;font-weight:600;color:var(--gold);padding:10px 0 2px;
+     font-variant-numeric:tabular-nums;min-height:22px}
+.cd.paused{color:var(--dim)}
+.tbar{display:flex;gap:10px;margin-top:2px}
+.tbar button{flex:1;padding:13px;border-radius:13px;background:#ffffff12;font-size:15px;font-weight:600}
+
+.count{align-self:center;background:#00000055;border:1px solid var(--line);border-radius:20px;
+       padding:6px 16px;font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums;
+       margin-top:2px}
+
+/* ---------- stats ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 8px;text-align:center}
+.stat b{display:block;font-size:25px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{display:block;font-size:11px;color:var(--dim);margin-top:3px;letter-spacing:.03em}
+.bars{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:5px;margin-top:4px}
+.qb{aspect-ratio:1;border-radius:6px;background:#ffffff12;display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;color:#ffffff70;font-variant-numeric:tabular-nums}
+.qb.ok{background:#3fb96b40;color:#c8f2d8} .qb.mid{background:#e0b24340;color:#f5dfae}
+.qb.bad{background:#e05c5c40;color:#f7c4c4}
+.hist{font-size:13.5px;color:var(--dim)}
+.hist div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ffffff12}
+
+.res{text-align:center;padding:8px 0}
+.res .big{font-size:60px;font-weight:800;font-family:Georgia,serif;line-height:1}
+.res .pass{color:var(--good)} .res .fail{color:var(--bad)}
+.small{font-size:13px;color:var(--dim);text-align:center;line-height:1.5}
+.vrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 2px;
+      border-bottom:1px solid #ffffff14}
+.vrow:last-of-type{border-bottom:0}
+.vrow.on{color:var(--gold)}
+.vck{flex:none;width:20px;text-align:center;color:var(--gold);font-weight:700}
+.vn{flex:1;min-width:0}
+.vn b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vn span{display:block;color:var(--dim);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vpl{flex:none;opacity:.55;font-size:15px}
+.search{width:100%;padding:13px 14px;border-radius:13px;background:#ffffff10;border:1px solid var(--line);
+        color:var(--ink);font-size:16px;font-family:inherit}
+.search::placeholder{color:#ffffff55}
+.secH{margin:14px 0 -6px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.li{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lih{display:flex;gap:11px;align-items:flex-start;text-align:left;width:100%;padding:13px 14px;font-size:15.5px;line-height:1.32}
+.lih:active{background:#ffffff10}
+.ln{flex:none;min-width:28px;color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}
+.lq{flex:1;font-weight:600}
+.lb{padding:0 14px 10px 53px}
+.li .ans{margin:0 12px 12px;border-radius:12px}
+.hidden{display:none!important}
+a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <button class="ic" id="back">‹</button>
+    <h1 id="title">Ciudadanía 128</h1>
+    <button class="ic" id="statsBtn">📊</button>
+    <button class="ic" id="setBtn">⚙︎</button>
+  </div>
+  <div class="prog"><i id="progBar" style="width:0"></i></div>
+  <div class="wrap" id="view"></div>
+</div>
+
+<script>
+const DATA = [{"n":1,"q":"What is the form of government of the United States?","qp":"(Uat is da form of government of di iunaired steits?)","qs":"¿Cuál es la forma de gobierno de los Estados Unidos?","a":[["Republic","(Repoblic)","República"],["Constitution-based federal republic","(Constitushon-beisd federal republic)","República federal constitucional"],["Representative democracy","(Represenarif democracy)","Democracia representativa"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":2,"q":"What is the Supreme Law of the land?","qp":"(Uat is de suprim ló of de land?)","qs":"¿Cuál es la Ley Suprema de la Nación?","a":[["(U.S.) Constitution","(Iu Es Constitushon)","(Constitución) de los EEUU"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":3,"q":"Name one thing the U.S. Constitution does.","qp":"(Neim uan zing di iu es constitushon dos)","qs":"Nombra una cosa que hace la Constitución de los Estados Unidos.","a":[["Forms the government","(Forms de government)","Forma el gobierno"],["Defines powers of government","(Difains pauers of government)","Define los poderes del gobierno"],["Defines the parts of government","(Difains de parts of government)","Define las partes del gobierno"],["Protects the rights of the people","(Proteks de raits of de pipol)","Protege los derechos de las personas"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":4,"q":"The U.S. Constitution starts with the words \"We the People.\" What does \"We the People\" mean?","qp":"(Di iu es constitushon starts uid da uards \"Ui da pipol\". Uat dos \"Ui da pipol\" min?)","qs":"La Constitución de los Estados Unidos comienza con las palabras \"Nosotros, el pueblo\". ¿Qué significa \"Nosotros el pueblo\"?","a":[["Self-government","(Self-government)","Autogobierno"],["Popular sovereignty","(Popular sovereinti)","Soberanía popular"],["Consent of the governed","(Consent of de governd)","Consentimiento de los gobernados"],["People should govern themselves","(Pipol shud govern demselvs)","Las personas deben gobernarse a sí mismas"],["(Example of) social contract","(Exampol of soshal contract)","(Ejemplo de) contrato social"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":5,"q":"How are changes made to the U.S. Constitution?","qp":"(¿Jau ar chenyes meid tu di iu es constitushon?)","qs":"¿Cómo se hacen los cambios a la Constitución de los Estados Unidos?","a":[["Amendments","(Amendments)","Enmiendas"],["The amendment process","(De amendment proces)","El proceso de enmienda"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":6,"q":"What does the Bill of Rights protect?","qp":"(Uat dos de Bil of Raits protect?)","qs":"¿Qué protege la Declaración de Derechos?","a":[["(The basic) rights of Americans","(De beisik raits of americans)","Los derechos (básicos) de los estadounidenses"],["(The basic) rights of people living in the United States","(De beisik raits of pipol livin in di iunaired steits)","Los derechos (básicos) de las personas que viven en los Estados Unidos"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":7,"q":"How many amendments does the U.S. Constitution have?","qp":"(Jau meni amendments dos de iu es constitushon jav?)","qs":"¿Cuántas enmiendas tiene la Constitución de Estados Unidos?","star":true,"a":[["Twenty-seven (27)","(Tuenti-seven)","Veintisiete (27)"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":8,"q":"Why is the Declaration of Independence important?","qp":"(Uai is de declereishon of independens important?)","qs":"¿Por qué es importante la Declaración de Independencia?","a":[["It says America is free from British control.","(It ses America is fri from british control)","Dice que Estados Unidos está libre del control británico."],["It says all people are created equal.","(It ses ol pipol ar crieired icual)","Dice que todas las personas son iguales."],["It identifies inherent rights.","(It aidentifais injerent raits)","Identifica derechos inherentes."],["It identifies individual freedoms.","(It aidentifais individual fridoms)","Identifica las libertades individuales."]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":9,"q":"What founding document said the American colonies were free from Britain?","qp":"(¿Uat faundin document sed de American colonis uer fri from briten?)","qs":"¿Qué documento fundacional dijo que las colonias americanas estaban libres de Gran Bretaña?","a":[["Declaration of Independence","(Declereishon of independens)","Declaración de Independencia"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":10,"q":"Name two important ideas from the Declaration of Independence and the U.S. Constitution.","qp":"(Neim tu important aidias from de declereishon of independens and de iu es constitushon)","qs":"Nombre dos ideas importantes de la Declaración de Independencia y la Constitución de los Estados Unidos.","a":[["Equality","(Icuality)","Igualdad"],["Liberty","(Librti)","Libertad"],["Social contract","(Soshal contract)","Contrato social"],["Natural rights","(Natural raits)","Derechos naturales"],["Limited government","(Limited government)","Gobierno limitado"],["Self-government","(Self-government)","Autogobierno"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":11,"q":"The words \"Life, Liberty, and the pursuit of Happiness\" are in what founding document?","qp":"(Da uords \"laif, liberti, and de persut of japines\" ar in uat faundin document?)","qs":"¿En qué documento fundacional se encuentran las palabras \"Vida, libertad y la búsqueda de la felicidad\"?","a":[["Declaration of Independence","(Declereishon of independens)","Declaración de Independencia"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":12,"q":"What is the economic system in the United States?","qp":"(Uat is di economic sistem of di iunaired steits?)","qs":"¿Cuál es el sistema económico de los Estados Unidos?","star":true,"a":[["Capitalism","(Capiralism)","Capitalismo"],["Free market economy","(Fri market economy)","Economía de mercado libre"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":13,"q":"What is the \"Rule of Law\"?","qp":"(Uat is de rul of lo?)","qs":"¿Cuál es la regla de la Ley?","a":[["Everyone must follow the law.","(Evriuan most falou de lo)","Todos deben seguir la ley."],["Leaders must obey the law.","(Liders most obei de lo)","Los líderes deben obedecer la ley."],["Government must obey the law.","(Government most obei de lo)","El gobierno debe obedecer la ley."],["No one is above the law.","(No uan is abov de lo)","Nadie está por encima de la ley."]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":14,"q":"Many documents influenced the U.S. Constitution. Name one.","qp":"(Meni documents influenst de iu es constitushon. Neim uan)","qs":"Muchos documentos influyeron en la Constitución de los Estados Unidos. Nombra uno.","a":[["Declaration of Independence","(Declereishon of independens)","Declaración de Independencia"],["Articles of Confederation","(Aricols of confedereishon)","Artículos de la Confederación"],["Federalist Papers","(Federalist peipers)","Papeles Federalistas"],["Anti-Federalist Papers","(Anti-federalist peipers)","Papeles anti-federalistas"],["Virginia Declaration of Rights","(Viryinia declereishon of raits)","Declaración de derechos de Virginia"],["Fundamental Orders of Connecticut","(Fandamentol orders of Connericut)","Órdenes fundamentales de Connecticut"],["Mayflower Compact","(Meiflauer compact)","Mayflower Compact"],["Iroquois Great Law of Peace","(Irocuoi Greit lo of piis)","Gran ley de paz iroquesa"]],"sec":"A: Principios del gobierno estadounidense","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":15,"q":"There are three branches of government. Why?","qp":"(Der ar zri branches of government. Uai?)","qs":"Hay tres ramas del gobierno. ¿Por qué?","a":[["So one part does not become too powerful","(So uan part dos not bicom tuu pauerful)","Para que una parte no se vuelva demasiado poderosa"],["Checks and balances","(Cheks and balances)","Controles y equilibrios"],["Separation of powers","(Separeishon of pauers)","Separación de poderes"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":16,"q":"Name the three branches of government.","qp":"(Neim da zri branches of government)","qs":"Nombre las tres ramas del gobierno.","a":[["Legislative, executive, and judicial","(Leyisleirif, execurif, and yudishal)","Legislativo, ejecutivo y judicial"],["Congress, president, and the courts","(Congres, president, and de corts)","Congreso, presidente y tribunales"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":17,"q":"The President of the United States is in charge of which branch of government?","qp":"(De president of di iunaired steits is in charch of uich branch of government?)","qs":"¿El presidente de los Estados Unidos está a cargo de qué rama del gobierno?","a":[["Executive branch","(Execurif branch)","Rama ejecutiva"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":18,"q":"What part of the federal government writes laws?","qp":"(Uat part of de federal government raits los?)","qs":"¿Qué parte del gobierno federal redacta leyes?","a":[["(U.S.) Congress","(Iu es congress)","(Congreso) de Estados Unidos"],["(U.S. or national) legislature","(Iu es or nashonal leyisleicher)","Legislatura (nacional o estadounidense)"],["Legislative branch","(Leyisleirif branch)","Poder Legislativo"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":19,"q":"What are the two parts of the U.S. Congress?","qp":"(¿Uat ar de tu parts of de iu es congress?)","qs":"¿Cuáles son las dos partes del Congreso de los Estados Unidos?","a":[["Senate and House (of Representatives)","(Senet and Jaus of Represenarifs)","Senado y Cámara de Representantes"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":20,"q":"Name one power of the U.S. Congress.","qp":"(Neim uan pauer of de iu es congress)","qs":"Nombre un poder del Congreso de los Estados Unidos.","star":true,"a":[["Writes laws","(Raits los)","Escribe leyes"],["Declares war","(Diclers uar)","Declara la guerra"],["Makes the federal budget","(Meiks de federal botyet)","Hace el presupuesto federal"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":21,"q":"How many U.S. senators are there?","qp":"(¿Jau meni iu es senarors ar der?)","qs":"¿Cuántos senadores estadounidenses hay?","a":[["One hundred (100)","(Uan jondred)","Cien (100)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":22,"q":"How long is a term for a U.S. senator?","qp":"(Jau long is a term for a iu es senaror?)","qs":"¿Cuánto tiempo dura el mandato de un senador estadounidense?","a":[["Six (6) years","(Six iers)","Seis (6) años"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":23,"q":"Who is one of your state's U.S. senators now?","qp":"(Ju is uan of ior steits iu es senarors nau?)","qs":"¿Quién es uno de los senadores estadounidenses de su estado ahora?","live":"Respuesta para FLORIDA. Verifica antes de tu entrevista.","a":[["Rick Scott","(Rik Scot)",""],["Ashley Moody","(Ashli Mudi)",""]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":24,"q":"How many voting members are in the House of Representatives?","qp":"(Jau meni vorin members ar in da jaus of represenarifs?)","qs":"¿Cuántos miembros votantes hay en la Cámara de Representantes?","a":[["Four hundred thirty-five (435)","(For jondred zeri-faiv)","Cuatrocientos treinta y cinco (435)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":25,"q":"How long is a term for a member of the House of Representatives?","qp":"(Jau long is a term for a member of de jaus of represenarifs?)","qs":"¿Cuánto tiempo dura el mandato de un miembro de la Cámara de Representantes?","a":[["Two (2) years","(Tu iers)","Dos (2) años"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":26,"q":"Why do U.S. representatives serve shorter terms than U.S. senators?","qp":"(¿Uai du iu es represenarifs serv shorer terms dan iu es senarors?)","qs":"¿Por qué los representantes de Estados Unidos cumplen mandatos más cortos que los senadores?","a":[["To more closely follow public opinion","(Tu mor clousli falou poblic opinion)","Para seguir más de cerca la opinión pública"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":27,"q":"How many senators does each state have?","qp":"(¿Jau meni senarors dos ich steit jav?)","qs":"¿Cuántos senadores tiene cada estado?","a":[["Two (2)","(Tu)","Dos (2)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":28,"q":"Why does each state have two senators?","qp":"(¿Uai dos ich steit jav tu senarors?)","qs":"¿Por qué cada estado tiene dos senadores?","a":[["Equal representation (for small states)","(Icual representeishon for smol steits)","Representación equitativa (para estados pequeños)"],["The Great Compromise (Connecticut Compromise)","(De greit compromais - Connericot compromais)","El Gran Compromiso (Compromiso de Connecticut)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":29,"q":"Name your U.S. representative.","qp":"(Neim ior iu es represenarif)","qs":"Nombre a su representante de EE.UU.","live":"Depende de tu distrito. Búscalo en house.gov y escríbelo aquí antes de tu entrevista.","a":[["Answers will vary by congressional district","(Depende de tu distrito)",""]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":30,"q":"What is the name of the Speaker of the House of Representatives now?","qp":"(Uat is de neim of de spiker of de jaus of represenarifs nau?)","qs":"¿Cómo se llama ahora el presidente de la Cámara de Representantes?","star":true,"live":"Verifica antes de tu entrevista.","a":[["Mike Johnson","(Maik Yonson)",""]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":31,"q":"Who does a U.S. senator represent?","qp":"(¿Ju dos a iu es senaror represent?)","qs":"¿A quién representa un senador estadounidense?","a":[["Citizens of their state","(Cirizens of deir steit)","Ciudadanos de su estado"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":32,"q":"Who elects U.S. senators?","qp":"(¿Ju ilects iu es senarors?)","qs":"¿Quién elige a los senadores estadounidenses?","a":[["Citizens from their state","(Cirizens from deir steit)","Ciudadanos de su estado"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":33,"q":"Who does a member of the House of Representatives represent?","qp":"(Ju dos a member of de jaus of represenarifs represent?)","qs":"¿A quién representa un miembro de la Cámara de Representantes?","a":[["Citizens in their (congressional) district","(Cirizens in deir congresional district)","Ciudadanos en su distrito (del Congreso)"],["Citizens in their district","(Cirizens in deir district)","Ciudadanos de su distrito"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":34,"q":"Who elects members of the House of Representatives?","qp":"(Ju ilects members of da jaus of represenarifs?)","qs":"¿Quién elige a los miembros de la Cámara de Representantes?","a":[["Citizens from their (congressional) district","(Cirizens from deir congresional district)","Ciudadanos de su distrito (del Congreso)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":35,"q":"Some states have more representatives than other states. Why?","qp":"(Som steits jav mor represenarifs dan oder steits. Uai?)","qs":"Algunos estados tienen más representantes que otros estados. ¿Por qué?","a":[["(Because of) the state's population","(Bicos of de steits populeishon)","(Debido a) la población del estado"],["(Because) they have more people","(Bicos dei jav mor pipol)","(Porque) tienen más gente"],["(Because) some states have more people","(Bicos som steits jav mor pipol)","(Porque) algunos estados tienen más gente"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":36,"q":"The President of the United States is elected for how many years?","qp":"(De president of di iunaired steits is ilected for jau meni iers?)","qs":"¿El presidente de los Estados Unidos es elegido por cuántos años?","star":true,"a":[["Four (4) years","(For iers)","Cuatro (4) años"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":37,"q":"The President of the United States can serve only two terms. Why?","qp":"(De president of di iunaired steits can serv only tu terms. Uai?)","qs":"El presidente de los Estados Unidos solo puede cumplir dos mandatos. ¿Por qué?","a":[["(Because of) the 22nd Amendment","(Bicos of da tuenti-second amendment)","(Debido a) la 22ª Enmienda"],["To keep the president from becoming too powerful","(Tu kip de president from bicomin tuu pauerful)","Para evitar que el presidente se vuelva demasiado poderoso"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":38,"q":"What is the name of the President of the United States now?","qp":"(Uat is da neim of de president of di iunaired steits nau?)","qs":"¿Cómo se llama ahora el presidente de los Estados Unidos?","star":true,"live":"Verifica antes de tu entrevista.","a":[["Donald J. Trump","(Donald Yei Tromp)",""],["Trump","(Tromp)",""]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":39,"q":"What is the name of the Vice President of the United States now?","qp":"(Uat is de neim of de vais president of di iunaired steits nau?)","qs":"¿Cómo se llama ahora el vicepresidente de los Estados Unidos?","star":true,"live":"Verifica antes de tu entrevista.","a":[["JD Vance","(Yei Di Vans)",""],["Vance","(Vans)",""]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":40,"q":"If the president can no longer serve, who becomes president?","qp":"(If de president can no longuer serv, ju bicoms president?)","qs":"Si el presidente ya no puede servir, ¿quién se convierte en presidente?","a":[["The Vice President (of the United States)","(De vais president of di iunaired steits)","El vicepresidente (de los Estados Unidos)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":41,"q":"Name one power of the president.","qp":"(Neim uan pauer of de president)","qs":"Nombra un poder del presidente.","a":[["Signs bills into law","(Sains bils intu lo)","Firma proyectos de ley"],["Vetoes bills","(Viros bils)","Veta proyectos de ley"],["Enforces laws","(Enforces los)","Hace cumplir las leyes"],["Commander in Chief (of the military)","(Comander in chif of de militari)","Comandante en Jefe (de las fuerzas armadas)"],["Chief diplomat","(Chif diplomat)","Jefe diplomático"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":42,"q":"Who is Commander in Chief of the U.S. military?","qp":"(Ju is comander in chif of di iu es militari?)","qs":"¿Quién es el comandante en jefe del ejército de los Estados Unidos?","a":[["The President (of the United States)","(De president of di iunaired steits)","El presidente (de los Estados Unidos)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":43,"q":"Who signs bills to become laws?","qp":"(¿Ju sains bils tu bicom los?)","qs":"¿Quién firma los proyectos de ley para convertirse en leyes?","a":[["The President (of the United States)","(De president of di iunaired steits)","El presidente (de los Estados Unidos)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":44,"q":"Who vetoes bills?","qp":"(Ju viros bils?)","qs":"¿Quién veta los proyectos de ley?","star":true,"a":[["The President (of the United States)","(De president of di iunaired steits)","El presidente (de los Estados Unidos)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":45,"q":"Who appoints federal judges?","qp":"(Ju apoints federal yodyes?)","qs":"¿Quién nombra a los jueces federales?","a":[["The President (of the United States)","(De president of di iunaired steits)","El presidente (de los Estados Unidos)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":46,"q":"The executive branch has many parts. Name one.","qp":"(De execurif branch jas meni parts. Neim uan)","qs":"El poder ejecutivo tiene muchas partes. Nombra una.","a":[["President (of the United States)","(President of di iunaired steits)","Presidente (de los Estados Unidos)"],["Cabinet","(Cabinet)","Gabinete"],["Federal departments and agencies","(Federal dipartments and eiyencis)","Departamentos y agencias federales"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":47,"q":"What does the President's Cabinet do?","qp":"(¿Uat dos de presidents cabinet du?)","qs":"¿Qué hace el Gabinete del presidente?","a":[["Advises the President (of the United States)","(Edvaises de president of di iunaired steits)","Asesora al presidente (de los Estados Unidos)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":48,"q":"What are two Cabinet-level positions?","qp":"(Uat ar tu cabinet-levol posishons?)","qs":"¿Cuáles son dos puestos a nivel de gabinete?","a":[["Secretary of Agriculture","(Sekreteri of agrekulcher)","Secretario de Agricultura"],["Secretary of Commerce","(Sekreteri of comers)","Secretario de Comercio"],["Secretary of Defense","(Sekreteri of difens)","Secretario de Defensa"],["Secretary of Education","(Sekreteri of edukeishon)","Secretario de Educación"],["Secretary of Energy","(Sekreteri of eneryi)","Secretario de Energía"],["Secretary of Health and Human Services","(Sekreteri of jelz and jiuman servises)","Secretario de Salud y Servicios Humanos"],["Secretary of Homeland Security","(Sekreteri of jomland sikiuriri)","Secretario de Seguridad Nacional"],["Secretary of Housing and Urban Development","(Sekreteri of jauzin and erben divelopment)","Secretario de Vivienda y Desarrollo Urbano"],["Secretary of the Interior","(Sekreteri of de intirier)","Secretario del Interior"],["Secretary of Labor","(Sekreteri of leiber)","Secretario del Trabajo"],["Secretary of State","(Sekreteri of steit)","Secretario de Estado"],["Secretary of Transportation","(Sekreteri of transporteishon)","Secretario de Transporte"],["Secretary of the Treasury","(Sekreteri of de treshuri)","Secretario del Tesoro"],["Secretary of Veterans Affairs","(Sekreteri of vererans afers)","Secretario de Asuntos de Veteranos"],["Attorney General","(Atorni Yeneral)","Procurador General"],["Vice President","(Vais president)","Vicepresidente"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":49,"q":"Why is the Electoral College important?","qp":"(¿Uai is de electoral colech important?)","qs":"¿Por qué es importante el Colegio Electoral?","a":[["It decides who is elected president.","(It disaids ju is ilected president)","Decide quién es elegido presidente."],["It provides a compromise between the popular election of the president and congressional selection.","(It provaids a compromais bituin de popular ilekshon of de president and congresional selekshon)","Proporciona un compromiso entre la elección popular del presidente y la selección del Congreso."]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":50,"q":"What is one part of the judicial branch?","qp":"(Uat is uan part of de yudishal branch?)","qs":"¿Qué es una parte del poder judicial?","a":[["Supreme Court","(Suprim cort)","Corte Suprema"],["Federal Courts","(Federal corts)","Tribunales federales"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":51,"q":"What does the Judicial Branch do?","qp":"(Uat dos de yudishal branch du?)","qs":"¿Qué hace la rama judicial?","a":[["Reviews laws","(Rivius los)","Revisa las leyes"],["Explains laws","(Expleins los)","Explica las leyes"],["Resolves disputes (disagreements) about the law","(Resolvs dispiuts - disagriments - abaut de lo)","Resuelve disputas (desacuerdos) sobre la ley"],["Decides if a law goes against the (U.S.) Constitution","(Disaids if a lo gos ageinst de iu es constitushon)","Decide si una ley va en contra de la Constitución (de EE. UU.)"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":52,"q":"What is the highest court in the United States?","qp":"(Uat is de jaiest cort in di iunaired steits?)","qs":"¿Cuál es el tribunal más alto de los Estados Unidos?","star":true,"a":[["Supreme Court","(Suprim cort)","Corte Suprema"]],"sec":"B: Sistema de gobierno","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":53,"q":"How many seats are on the Supreme Court?","qp":"(¿Jau meni sits ar on de suprim cort?)","qs":"¿Cuántos escaños hay en la Corte Suprema?","a":[["Nine (9)","(Nain)","Nueve (9)"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":54,"q":"How many Supreme Court justices are usually needed to decide a case?","qp":"(¿Jau meni suprim cort yustices ar iusuali nided tu disaid a keis?)","qs":"¿Cuántos jueces de la Corte Suprema se necesitan normalmente para decidir un caso?","a":[["Nine (9)","(Nain)","Nueve (9)"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":55,"q":"How long do Supreme Court justices serve?","qp":"(Jau long du suprim cort yustices serv?)","qs":"¿Cuánto tiempo sirven los jueces de la Corte Suprema?","a":[["(For) life","(For laif)","(Por) vida"],["Lifetime appointment","(Laiftaim apointment)","Nombramiento de por vida"],["(Until) retirement","(Until ritaierment)","(Hasta) la jubilación"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":56,"q":"Supreme Court justices serve for life. Why?","qp":"(Suprim cort yustices serv for laif. Uai?)","qs":"Los jueces de la Corte Suprema sirven de por vida. ¿Por qué?","a":[["To be independent (of politics)","(Tu bi independent of politiks)","Para ser independientes (de la política)"],["To limit outside (political) influence","(Tu limit autsaid polirical influens)","Para limitar la influencia (política) externa"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":57,"q":"Who is the chief justice of the United States now?","qp":"(Ju is de chif yostis of di iunaired steits nau?)","qs":"¿Quién es el presidente del Tribunal Supremo de los Estados Unidos ahora?","live":"Verifica antes de tu entrevista.","a":[["John Roberts (John G. Roberts, Jr.)","(Yon Raberts)",""]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":58,"q":"Name one power that is only for the federal government.","qp":"(Neim uan pauer dat is only for de federal government)","qs":"Nombra un poder que sea exclusivo del gobierno federal.","a":[["Print paper money","(Print peiper moni)","Imprimir billetes"],["Mint coins","(Mint coins)","Acuñar moneda"],["Declare war","(Dicler uar)","Declarar la guerra"],["Create an army","(Crieit an armi)","Crear un ejército"],["Make treaties","(Meik triris)","Hacer tratados"],["Set foreign policy","(Set forein policy)","Establecer la política exterior"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":59,"q":"Name one power that is only for the states.","qp":"(Neim uan pauer dat is only for de steits)","qs":"Nombra un poder que sea solo para los estados.","a":[["Provide schooling and education","(Provaid sculin and edukeishon)","Proporcionar escolarización y educación"],["Provide protection (police)","(Provaid protekshon - polis)","Proveer protección (policía)"],["Provide safety (fire departments)","(Provaid seifti - faier dipartments)","Proveer seguridad (cuerpos de bomberos)"],["Give a driver's license","(Giv a draivers laicens)","Dar una licencia de conducir"],["Approve zoning and land use","(Aprúv zonin and land ius)","Aprobar la zonificación y uso de la tierra"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":60,"q":"What is the purpose of the 10th Amendment?","qp":"(¿Uat is de perpos of da tenz amendment?)","qs":"¿Cuál es el propósito de la Décima Enmienda?","a":[["(It states that the) powers not given to the federal government belong to the states or to the people","(It steits dat de pauers not guiven tu da federal government bilong tu de steits or tu da pipol)","(Establece que los) poderes no otorgados al gobierno federal pertenecen a los estados o al pueblo."]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":61,"q":"Who is the governor of your state now?","qp":"(Ju is de governor of ior steit nau?)","qs":"¿Quién es el gobernador de su estado ahora?","star":true,"live":"Respuesta para FLORIDA. Verifica antes de tu entrevista.","a":[["Ron DeSantis","(Ron DiSantis)",""]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":62,"q":"What is the capital of your state?","qp":"(Uat is de capirol of ior steit?)","qs":"¿Cuál es la capital de su estado?","live":"Respuesta para FLORIDA.","a":[["Tallahassee","(Talajasi)",""]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":63,"q":"There are four amendments to the Constitution about who can vote. Describe one of them.","qp":"(Der ar for amendments tu de constitushon abaut ju can vout. Discraib uan of dem)","qs":"Hay cuatro enmiendas a la Constitución sobre quién puede votar. Describe una de ellas.","a":[["Citizens eighteen (18) and older (can vote).","(Cirizens eitin and older can vout)","Ciudadanos de dieciocho (18) años o más (pueden votar)."],["You don't have to pay (a poll tax) to vote.","(Iu dont jav tu pei a poul tax tu vout)","No tiene que pagar (un impuesto de votación) para votar."],["Any citizen can vote. (Women and men can vote.)","(Eni cirizen can vout - uimen and men can vout)","Cualquier ciudadano puede votar. (Las mujeres y los hombres pueden votar.)"],["A male citizen of any race (can vote).","(A meil cirizen of eni reis can vout)","Un ciudadano de sexo masculino de cualquier raza (puede votar)."]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":64,"q":"Who can vote in federal elections, run for federal office, and serve on a jury in the United States?","qp":"(Ju can vout in federal ilekshons, ron for federal ofis, and serv on a yuri in di iunaired steits?)","qs":"¿Quién puede votar en las elecciones federales, postularse para un cargo federal y formar parte de un jurado en los Estados Unidos?","a":[["Citizens","(Cirizens)","Los ciudadanos"],["Citizens of the United States","(Cirizens of di iunaired steits)","Ciudadanos de los Estados Unidos"],["U.S. citizens","(Iu es cirizens)","Ciudadanos estadounidenses"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":65,"q":"What are three rights of everyone living in the United States?","qp":"(Uat ar zri raits of evriuan livin in di iunaired steits?)","qs":"¿Cuáles son tres derechos de todas las personas que viven en los Estados Unidos?","a":[["Freedom of expression","(Fridom of expreshon)","Libertad de expresión"],["Freedom of speech","(Fridom of spich)","Libertad de palabra"],["Freedom of assembly","(Fridom of asembli)","Libertad de reunión"],["Freedom to petition the government","(Fridom tu petishon de government)","Libertad para presentar peticiones al gobierno"],["Freedom of religion","(Fridom of riliyion)","Libertad de religión"],["The right to bear arms","(De rait tu ber arms)","El derecho a portar armas"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":66,"q":"What do we show loyalty to when we say the Pledge of Allegiance?","qp":"(Uat du ui shou loialti tu uen ui sei da Pledch of Aliyens?)","qs":"¿A qué mostramos lealtad cuando decimos el Juramento de Lealtad?","added":true,"a":[["The United States","(Da Iunaired Steits)","Los Estados Unidos"],["The flag","(Da flag)","La bandera"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":67,"q":"Name two promises that new citizens make in the Oath of Allegiance.","qp":"(Neim tu promises dat niu cirizens meik in da ouz of aliyens)","qs":"Nombre dos promesas que los nuevos ciudadanos hacen en el juramento de lealtad.","a":[["Give up loyalty to other countries","(Giv ap loialti tu oder cantris)","Renunciar a la lealtad a otros países"],["Defend the (U.S.) Constitution","(Difend de iu es constitushon)","Defender la Constitución (de EE. UU.)"],["Obey the laws of the United States","(Obei de los of di iunaired steits)","Obedecer las leyes de los Estados Unidos"],["Serve in the military (if needed)","(Serv in de militari if nided)","Servir en el ejército (si es necesario)"],["Serve (help, do important work for) the nation (if needed)","(Serv - jelp, du important uork for - de neishon if nided)","Servir (ayudar, hacer un trabajo importante para) la nación (si es necesario)"],["Be loyal to the United States","(Bi loial tu di iunaired steits)","Ser leal a los Estados Unidos"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":68,"q":"How can people become United States citizens?","qp":"(Jau can pipol bicom iunaired steits cirizens?)","qs":"¿Cómo pueden las personas convertirse en ciudadanos de los Estados Unidos?","a":[["Naturalize","(Nachuralaiz)","Naturalizarse"],["Derive citizenship","(Deraiv cirizenship)","Derivar la ciudadanía"],["Be born in the United States","(Bi born in di iunaired steits)","Nacer en los Estados Unidos"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":69,"q":"What are two examples of civic participation in the United States?","qp":"(Uat ar tu exampols of civic participeishon in di iunaired steits?)","qs":"¿Cuáles son dos ejemplos de participación cívica en los Estados Unidos?","a":[["Vote","(Vout)","Votar"],["Run for office","(Ron for ofis)","Postularse para un cargo"],["Join a political party","(Yoin a polirical pary)","Unirse a un partido político"],["Help with a campaign","(Jelp uiz a campein)","Ayudar con una campaña"],["Join a civic group","(Yoin a civic grup)","Unirse a un grupo cívico"],["Join a community group","(Yoin a comiuniri grup)","Unirse a un grupo comunitario"],["Give an elected official your opinion (on an issue)","(Giv an ilected ofishal ior opinion on an ishu)","Dar su opinión a un funcionario electo (sobre un tema)"],["Contact elected officials","(Contact ilected ofishals)","Contactar a los funcionarios electos"],["Support or oppose an issue or policy","(Suport or opous an ishu or policy)","Apoyar u oponerse a un tema o política"],["Write to a newspaper","(Rait tu a niuspeiper)","Escribir a un periódico"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":70,"q":"What is one way Americans can serve their country?","qp":"(Uat is uan uei americans can serv deir cantri?)","qs":"¿Cuál es una forma en que los estadounidenses pueden servir a su país?","a":[["Vote","(Vout)","Votar"],["Pay taxes","(Pei taxes)","Pagar impuestos"],["Obey the law","(Obei de lo)","Obedecer la ley"],["Serve in the military","(Serv in de militari)","Servir en el ejército"],["Run for office","(Ron for ofis)","Postularse para un cargo"],["Work for local, state, or federal government","(Uork for local, steit, or federal government)","Trabajar para el gobierno local, estatal o federal"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":71,"q":"Why is it important to pay federal taxes?","qp":"(Uai is it important tu pei federal taxes?)","qs":"¿Por qué es importante pagar impuestos federales?","a":[["Required by law","(Ricuaierd bai lo)","Requerido por la ley"],["All people pay to fund the federal government","(Ol pipol pei tu fond de federal government)","Todas las personas pagan para financiar el gobierno federal"],["Required by the (U.S.) Constitution (16th Amendment)","(Ricuaierd bai de iu es constitushon - sixtinz amendment)","Requerido por la Constitución (de EE. UU.) (Enmienda 16)"],["Civic duty","(Civic diuri)","Deber cívico"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":72,"q":"It is important for all men age 18 through 25 to register for the Selective Service. Name one reason why.","qp":"(It is important for ol men eich eitin zru tuenti-faiv tu reyister for de selectiv servis. Neim uan rison uai)","qs":"Es importante que todos los hombres de 18 a 25 años se inscriban en el Servicio Selectivo. Nombra una razón.","a":[["Required by law","(Ricuaierd bai lo)","Requerido por la ley"],["Civic duty","(Civic diuri)","Deber cívico"],["Makes the draft fair, if needed","(Meiks de draft fer, if nided)","Hace que el reclutamiento sea justo, si es necesario"]],"sec":"C: Derechos y responsabilidades","cat":"GOBIERNO ESTADOUNIDENSE"},{"n":73,"q":"The colonists came to America for many reasons. Name one.","qp":"(De colonists keim tu America for meni risons. Neim uan)","qs":"Los colonos llegaron a América por muchas razones. Nombra una.","a":[["Freedom","(Fridom)","Libertad"],["Political liberty","(Polirical liberti)","Libertad política"],["Religious freedom","(Riliyes fridom)","Libertad religiosa"],["Economic opportunity","(Economic oporchuniri)","Oportunidad económica"],["Escape persecution","(Skeip persekiushon)","Escapar de la persecución"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":74,"q":"Who lived in America before the Europeans arrived?","qp":"(¿Ju livd in America bifor de iuropians araivd?)","qs":"¿Quién vivía en América antes de la llegada de los europeos?","star":true,"a":[["American Indians","(American Indians)","Indios americanos"],["Native Americans","(Neiriv Americans)","Nativos americanos"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":75,"q":"What group of people was taken and sold as slaves?","qp":"(Uat grup of pipol uas teiken and sold as sleivs?)","qs":"¿Qué grupo de personas fue tomado y vendido como esclavos?","a":[["Africans","(Africans)","Africanos"],["People from Africa","(Pipol from Africa)","Gente de África"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":76,"q":"What war did the Americans fight to win independence from Britain?","qp":"(Uat uar did de americans fait tu uin independens from Briten?)","qs":"¿Qué guerra pelearon los estadounidenses para independizarse de Gran Bretaña?","a":[["American Revolution","(American revolushon)","Revolución Americana"],["The (American) Revolutionary War","(De American revolushonari uar)","La Guerra Revolucionaria (Americana)"],["War for (American) Independence","(Uar for American independens)","Guerra por la Independencia (estadounidense)"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":77,"q":"Name one reason why the Americans declared independence from Britain.","qp":"(Neim uan rison uai de americans diclerd independens from Briten)","qs":"Nombra una razón por la que los estadounidenses declararon su independencia de Gran Bretaña.","a":[["High taxes","(Jai taxes)","Impuestos altos"],["Taxation without representation","(Taxeishon uizaut representeishon)","Impuestos sin representación"],["British soldiers stayed in Americans' houses (boarding, quartering)","(Brirish soldiers steid in americans jauses - bordin, cuorterin)","Los soldados británicos se quedaron en las casas de los estadounidenses (alojamiento, acuartelamiento)"],["They did not have self-government","(Dei did not jav self-government)","No tenían autogobierno"],["Boston Massacre","(Boston maseker)","Masacre de Boston"],["Boston Tea Party (Tea Act)","(Boston Ti Pary - Ti Act)","Motín del té de Boston (Ley del Té)"],["Stamp Act","(Stamp Act)","Ley del Timbre"],["Sugar Act","(Shugar Act)","Ley del Azúcar"],["Townshend Acts","(Taunzend Acts)","Leyes de Townshend"],["Intolerable (Coercive) Acts","(Intolerabol - Coerciv - Acts)","Leyes Intolerables (Coercitivas)"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":78,"q":"Who wrote the Declaration of Independence?","qp":"(Ju rout de declereishon of independens?)","qs":"¿Quién escribió la Declaración de Independencia?","star":true,"a":[["(Thomas) Jefferson","(Tomas Yeferson)",""]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":79,"q":"When was the Declaration of Independence adopted?","qp":"(¿Uen uas de declereishon of independens adopted?)","qs":"¿Cuándo fue adoptada la Declaración de Independencia?","a":[["July 4, 1776","(Yulai forz, seventin-seventi-six)","El 4 de julio de 1776"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":80,"q":"The American Revolution had many important events. Name one.","qp":"(Di American revolushon jad meni important ivents. Neim uan)","qs":"La Revolución Americana tuvo muchos eventos importantes. Nombra uno.","a":[["(Battle of) Bunker Hill","(Barel of Bonker Jil)","(Batalla de) Bunker Hill"],["Declaration of Independence","(Declereishon of independens)","Declaración de Independencia"],["Washington Crossing the Delaware (Battle of Trenton)","(Uashinton crosin de Delauer - Barel of Trenton)","Washington cruzando el Delaware (Batalla de Trenton)"],["(Battle of) Saratoga","(Barel of Saratoga)","(Batalla de) Saratoga"],["Valley Forge (Encampment)","(Vali Forch - Incampment)","Valley Forge (Campamento)"],["(Battle of) Yorktown (British surrender at Yorktown)","(Barel of Iorktaun - Brirish surrender at Iorktaun)","(Batalla de) Yorktown (rendición británica en Yorktown)"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":81,"q":"There were 13 original states. Name five.","qp":"(Der uer zertin oriyinal steits. Neim faiv)","qs":"Había 13 estados originales. Nombre cinco.","a":[["New Hampshire","(Niu Jampsher)",""],["Massachusetts","(Masechusets)",""],["Rhode Island","(Roud Ailand)",""],["Connecticut","(Connericot)",""],["New York","(Niu Iork)",""],["New Jersey","(Niu Yersi)",""],["Pennsylvania","(Pensilvenia)",""],["Delaware","(Delauer)",""],["Maryland","(Meriland)",""],["Virginia","(Viryinia)",""],["North Carolina","(Norz Carolaina)",""],["South Carolina","(Sauz Carolaina)",""],["Georgia","(Yioryia)",""]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":82,"q":"What founding document was written in 1787?","qp":"(Uat faundin document uas riten in seventin eiri-seven?)","qs":"¿Qué documento fundacional se redactó en 1787?","a":[["(U.S.) Constitution","(Iu es constitushon)","Constitución de los EEUU"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":83,"q":"The Federalist Papers supported the passage of the U.S. Constitution. Name one of the writers.","qp":"(De Federalist Peipers suported de pasech of di iu es constitushon. Neim uan of de raiters)","qs":"Los ensayos conocidos como \"Los Federalistas\" respaldaron la aprobación de la Constitución. Nombre uno de los autores.","a":[["(James) Madison","(Yeims Madison)",""],["(Alexander) Hamilton","(Alexander Jamilton)",""],["(John) Jay","(Yon Yei)",""],["Publius","(Poblius)",""]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":84,"q":"Why were the Federalist Papers important?","qp":"(¿Uai uer de Federalist Peipers important?)","qs":"¿Por qué fueron importantes los Federalist Papers?","a":[["They helped people understand the (U.S.) Constitution","(Dei jelpt pipol anderstand di iu es constitushon)","Ayudaron a la gente a comprender la Constitución (de EE. UU.)"],["They supported passing the (U.S.) Constitution.","(Dei suported pasin di iu es constitushon)","Apoyaron la aprobación de la Constitución (de EE. UU.)"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":85,"q":"Benjamin Franklin is famous for many things. Name one.","qp":"(Benyamin Franklin is feimus for meni zings. Neim uan)","qs":"Benjamin Franklin es famoso por muchas cosas. Nombra una.","a":[["Founded the first free public libraries","(Faunded da ferst fri poblic laibraris)","Fundó las primeras bibliotecas públicas gratuitas"],["First Postmaster General of the United States","(Ferst poustmaster yeneral of di iunaired steits)","Primer Director General de Correos de los Estados Unidos"],["Helped write the Declaration of Independence","(Jelpt rait de declereishon of independens)","Ayudó a redactar la Declaración de Independencia"],["Inventor","(Inventor)","Inventor"],["U.S. diplomat","(Iu es diplomat)","Diplomático estadounidense"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":86,"q":"George Washington is famous for many things. Name one.","qp":"(Yorch Uashinton is feimus for meni zings. Neim uan)","qs":"George Washington es famoso por muchas cosas. Nombra una.","star":true,"a":[["\"Father of Our Country\"","(Fader of Aur Cantri)","\"Padre de nuestra patria\""],["First president of the United States","(Ferst president of di iunaired steits)","Primer presidente de los Estados Unidos"],["General of the Continental Army","(Yeneral of de Continental Armi)","General del Ejército Continental"],["President of the Constitutional Convention","(President of de Constitushonal Convenshon)","Presidente de la Convención Constitucional"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":87,"q":"Thomas Jefferson is famous for many things. Name one.","qp":"(Tomas Yeferson is feimus for meni zings. Neim uan)","qs":"Thomas Jefferson es famoso por muchas cosas. Nombra una.","a":[["Writer of the Declaration of Independence","(Raiter of de declereishon of independens)","Redactor de la Declaración de Independencia"],["Third president of the United States","(Zerd president of di iunaired steits)","Tercer presidente de los Estados Unidos"],["Doubled the size of the United States (Louisiana Purchase)","(Dobeld de sais of di iunaired steits - Luisiana Perches)","Duplicó el tamaño de los Estados Unidos (Compra de Luisiana)"],["First Secretary of State","(Ferst Sekreteri of Steit)","Primer Secretario de Estado"],["Founded the University of Virginia","(Faunded di iuniversiri of Viryinia)","Fundó la Universidad de Virginia"],["Writer of the Virginia Statute on Religious Freedom","(Raiter of de Viryinia Stachut on Riliyes Fridom)","Redactor del Estatuto de Virginia sobre Libertad Religiosa"]],"sec":"A: Época colonial e independencia","cat":"HISTORIA ESTADOUNIDENSE"},{"n":88,"q":"James Madison is famous for many things. Name one.","qp":"(Yeims Madison is feimus for meni zings. Neim uan)","qs":"James Madison es famoso por muchas cosas. Nombra una.","a":[["\"Father of the Constitution\"","(Fader of de Constitushon)","\"Padre de la Constitución\""],["Fourth president of the United States","(Forz president of di iunaired steits)","Cuarto presidente de los Estados Unidos"],["President during the War of 1812","(President durin de Uar of eitin-tuelv)","Presidente durante la Guerra de 1812"],["One of the writers of the Federalist Papers","(Uan of de raiters of de Federalist Peipers)","Uno de los escritores de los Federalist Papers"]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":89,"q":"Alexander Hamilton is famous for many things. Name one.","qp":"(Alexander Jamilton is feimus for meni zings. Neim uan)","qs":"Alexander Hamilton es famoso por muchas cosas. Nombra una.","a":[["First Secretary of the Treasury","(Ferst Sekreteri of de Treshuri)","Primer Secretario del Tesoro"],["One of the writers of the Federalist Papers","(Uan of de raiters of de Federalist Peipers)","Uno de los escritores de los Federalist Papers"],["Helped establish the First Bank of the United States","(Jelpt establish de Ferst Bank of di iunaired steits)","Ayudó a establecer el Primer Banco de los Estados Unidos"],["Aide to General George Washington","(Eid tu Yeneral Yorch Uashinton)","Asistente del general George Washington"],["Member of the Continental Congress","(Member of de Continental Congres)","Miembro del Congreso Continental"]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":90,"q":"What territory did the United States buy from France in 1803?","qp":"(Uat territori did di iunaired steits bai from Frans in eitin-ou-zri?)","qs":"¿Qué territorio le compró Estados Unidos a Francia en 1803?","a":[["Louisiana Territory","(Luisiana Territori)","Territorio de Luisiana"],["Louisiana","(Luisiana)","Luisiana"]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":91,"q":"Name one war fought by the United States in the 1800s.","qp":"(Neim uan uar fot bai di iunaired steits in de eitin-jondreds)","qs":"Nombra una guerra que libró Estados Unidos en el siglo XIX.","a":[["War of 1812","(Uar of eitin-tuelv)","Guerra de 1812"],["Mexican-American War","(Mexican-American Uar)","Guerra México-Americana"],["Civil War","(Civil Uar)","La Guerra Civil"],["Spanish-American War","(Spanish-American Uar)","Guerra Hispanoamericana"]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":92,"q":"Name the U.S. war between the North and the South.","qp":"(Neim di iu es uar bituin de Norz and de Sauz)","qs":"Nombra la guerra de Estados Unidos entre el Norte y el Sur.","a":[["The Civil War","(De Civil Uar)","La Guerra Civil"]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":93,"q":"The Civil War had many important events. Name one.","qp":"(De Civil Uar jad meni important ivents. Neim uan)","qs":"La Guerra Civil tuvo muchos acontecimientos importantes. Nombra uno.","a":[["(Battle of) Fort Sumter","(Barel of Fort Somter)","(Batalla de) Fort Sumter"],["Emancipation Proclamation","(Emancipeishon Proclameishon)","Proclamación de Emancipación"],["(Battle of) Vicksburg","(Barel of Viksberg)","(Batalla de) Vicksburg"],["(Battle of) Gettysburg","(Barel of Guerisberg)","(Batalla de) Gettysburg"],["Sherman's March","(Shermans March)","La marcha de Sherman"],["(Surrender at) Appomattox","(Sorender at Apomatox)","(Rendición en) Appomattox"],["(Battle of) Antietam/Sharpsburg","(Barel of Antitam / Sharpsberg)","(Batalla de) Antietam / Sharpsburg"],["Lincoln was assassinated.","(Lincon uas asasineired)","Lincoln fue asesinado."]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":94,"q":"Abraham Lincoln is famous for many things. Name one.","qp":"(Eibrajam Lincon is feimus for meni zings. Neim uan)","qs":"Abraham Lincoln es famoso por muchas cosas. Nombra una.","star":true,"a":[["Freed the slaves (Emancipation Proclamation)","(Frid de sleivs - Emancipeishon Proclameishon)","Liberó a los esclavos (Proclamación de Emancipación)"],["Saved (or preserved) the Union","(Seivd or priservd di Iunion)","Salvó (o preservó) la Unión"],["Led the United States during the Civil War","(Led di iunaired steits durin de Civil Uar)","Lideró los Estados Unidos durante la Guerra Civil"],["16th president of the United States","(Sixtinz president of di iunaired steits)","16º presidente de los Estados Unidos"],["Delivered the Gettysburg Address","(Deliverd de Guerisberg Adres)","Pronunció el discurso de Gettysburg"]],"sec":"B: Los años 1800","cat":"HISTORIA ESTADOUNIDENSE"},{"n":95,"q":"What did the Emancipation Proclamation do?","qp":"(¿Uat did de Emancipeishon Proclameishon du?)","qs":"¿Qué hizo la Proclamación de Emancipación?","a":[["Freed the slaves","(Frid de sleivs)","Liberó a los esclavos"],["Freed slaves in the Confederacy","(Frid sleivs in de Confederasi)","Liberó a los esclavos en la Confederación"],["Freed slaves in the Confederate states","(Frid sleivs in de Confederet steits)","Liberó a los esclavos en los estados confederados"],["Freed slaves in most Southern states","(Frid sleivs in moust Sauzern steits)","Liberó a los esclavos en la mayoría de los estados del sur"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":96,"q":"What U.S. war ended slavery?","qp":"(Uat iu es uar ended sleivri?)","qs":"¿Qué guerra de Estados Unidos acabó con la esclavitud?","a":[["The Civil War","(De Civil Uar)","La Guerra Civil"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":97,"q":"What amendment gives citizenship to all persons born in the United States?","qp":"(Uat amendment givs cirizenship tu ol persons born in di iunaired steits?)","qs":"¿Qué enmienda otorga la ciudadanía a todas las personas nacidas en los Estados Unidos?","a":[["14th Amendment","(Fortinz Amendment)","Decimocuarta Enmienda"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":98,"q":"When did all men get the right to vote?","qp":"(Uen did ol men guet de rait tu vout?)","qs":"¿Cuándo obtuvieron todos los hombres el derecho al voto?","a":[["After the Civil War","(After de Civil Uar)","Después de la Guerra Civil"],["During Reconstruction","(Durin Reconstrokshon)","Durante la Reconstrucción"],["(With the) 15th Amendment","(Uiz de Fiftinz Amendment)","(Con la) 15ª Enmienda"],["1870","(Eitin-seventi)","1870"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":99,"q":"Name one leader of the women's rights movement in the 1800s.","qp":"(Neim uan lider of de uimens raits muvment in de eitin-jondreds)","qs":"Nombra a una líder del movimiento por los derechos de la mujer en el siglo XIX.","a":[["Susan B. Anthony","(Susan Bi Anzoni)",""],["Sojourner Truth","(Soyorner Truz)",""],["Harriet Tubman","(Jariet Tobman)",""],["Lucretia Mott","(Lucrisha Mot)",""],["Lucy Stone","(Lusi Stoun)",""]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":100,"q":"Name one war fought by the United States in the 1900s.","qp":"(Neim uan uar fot bai di iunaired steits in de naintin-jondreds)","qs":"Nombra una guerra que libró Estados Unidos en el siglo XX.","a":[["World War I","(Uorld Uar Uan)","Primera Guerra Mundial"],["World War II","(Uorld Uar Tu)","Segunda Guerra Mundial"],["Korean War","(Corian Uar)","Guerra de Corea"],["Vietnam War","(Vietnam Uar)","Guerra de Vietnam"],["(Persian) Gulf War","(Pershan Golf Uar)","Guerra del Golfo (Pérsico)"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":101,"q":"Why did the United States enter World War I?","qp":"(Uai did di iunaired steits enter Uorld Uar Uan?)","qs":"¿Por qué Estados Unidos entró en la Primera Guerra Mundial?","a":[["Because Germany attacked U.S. (civilian) ships","(Bicos Yermani atakt iu es civilian ships)","Porque Alemania atacó barcos estadounidenses (civiles)"],["To support the Allied Powers (England, France, Italy, and Russia)","(Tu suport di Alaid Pauers - Ingland, Frans, Itali, and Rosha)","Para apoyar a las Potencias Aliadas (Inglaterra, Francia, Italia y Rusia)"],["To oppose the Central Powers (Germany, Austria-Hungary, the Ottoman Empire, and Bulgaria)","(Tu opous de Central Pauers - Yermani, Ostria-Jongari, di Otoman Empaier, and Bulgueria)","Para oponerse a las Potencias Centrales (Alemania, Austria-Hungría, el Imperio Otomano y Bulgaria)"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":102,"q":"When did all women get the right to vote?","qp":"(Uen did ol uimen guet de rait tu vout?)","qs":"¿Cuándo obtuvieron todas las mujeres el derecho al voto?","a":[["1920","(Naintin-tuenti)","1920"],["After World War I","(After Uorld Uar Uan)","Después de la Primera Guerra Mundial"],["(With the) 19th Amendment","(Uiz de Naintinz Amendment)","(Con la) 19ª Enmienda"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":103,"q":"What was the Great Depression?","qp":"(Uat uas de Greit Dipreshon?)","qs":"¿Qué fue la Gran Depresión?","a":[["Longest economic recession in modern history","(Longuest economic riseshon in modern jistori)","La recesión económica más larga de la historia moderna"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":104,"q":"When did the Great Depression start?","qp":"(Uen did de Greit Dipreshon start?)","qs":"¿Cuándo comenzó la Gran Depresión?","a":[["The Great Crash (1929)","(De Greit Crash - naintin-tuenti-nain)","El Gran Desplome (1929)"],["Stock market crash of 1929","(Stok market crash of naintin-tuenti-nain)","Caída del mercado de valores de 1929"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":105,"q":"Who was president during the Great Depression and World War II?","qp":"(¿Ju uas president durin de Greit Dipreshon and Uorld Uar Tu?)","qs":"¿Quién fue presidente durante la Gran Depresión y la Segunda Guerra Mundial?","a":[["(Franklin) Roosevelt","(Franklin Rusevelt)",""]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":106,"q":"Why did the United States enter World War II?","qp":"(Uai did di iunaired steits enter Uorld Uar Tu?)","qs":"¿Por qué Estados Unidos entró en la Segunda Guerra Mundial?","a":[["(Bombing of) Pearl Harbor","(Bombin of Perl Jarbor)","(Bombardeo de) Pearl Harbor"],["Japanese attacked Pearl Harbor","(Yapanis atakt Perl Jarbor)","Los japoneses atacaron Pearl Harbor"],["To support the Allied Powers (England, France, and Russia)","(Tu suport di Alaid Pauers - Ingland, Frans, and Rosha)","Para apoyar a las Potencias Aliadas (Inglaterra, Francia y Rusia)"],["To oppose the Axis Powers (Germany, Italy, and Japan)","(Tu opous di Axis Pauers - Yermani, Itali, and Yapan)","Para oponerse a las Potencias del Eje (Alemania, Italia y Japón)"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":107,"q":"Dwight Eisenhower is famous for many things. Name one.","qp":"(Duait Aisenjauer is feimus for meni zings. Neim uan)","qs":"Dwight Eisenhower es famoso por muchas cosas. Nombra una.","a":[["General during World War II","(Yeneral durin Uorld Uar Tu)","General durante la Segunda Guerra Mundial"],["President at the end of (during) the Korean War","(President at di end of - durin - de Corian Uar)","Presidente al final de (durante) la Guerra de Corea"],["34th president of the United States","(Zeri-forz president of di iunaired steits)","34º presidente de los Estados Unidos"],["Signed the Federal-Aid Highway Act of 1956 (Created the Interstate System)","(Saind de Federal-Eid Jaiuei Act of naintin-fifti-six - crieired di Intersteit Sistem)","Firmó la Ley de Carreteras de Ayuda Federal de 1956 (creó el Sistema Interestatal)"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":108,"q":"Who was the United States' main rival during the Cold War?","qp":"(Ju uas di iunaired steits mein raival durin de Cold Uar?)","qs":"¿Quién fue el principal rival de Estados Unidos durante la Guerra Fría?","a":[["Soviet Union","(Soviet Iunion)","Unión Soviética"],["USSR","(Iu Es Es Ar)","URSS"],["Russia","(Rosha)","Rusia"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":109,"q":"During the Cold War, what was one main concern of the United States?","qp":"(Durin de Cold Uar, uat uas uan mein consern of di iunaired steits?)","qs":"Durante la Guerra Fría, ¿cuál fue una de las principales preocupaciones de Estados Unidos?","a":[["Communism","(Comiunism)","Comunismo"],["Nuclear war","(Nuclier uar)","Guerra nuclear"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":110,"q":"Why did the United States enter the Korean War?","qp":"(Uai did di iunaired steits enter de Corian Uar?)","qs":"¿Por qué Estados Unidos entró en la Guerra de Corea?","a":[["To stop the spread of communism","(Tu stop de spred of comiunism)","Para detener la propagación del comunismo"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":111,"q":"Why did the United States enter the Vietnam War?","qp":"(Uai did di iunaired steits enter de Vietnam Uar?)","qs":"¿Por qué Estados Unidos entró en la Guerra de Vietnam?","a":[["To stop the spread of communism","(Tu stop de spred of comiunism)","Para detener la propagación del comunismo"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":112,"q":"What did the civil rights movement do?","qp":"(Uat did de civil raits muvment du?)","qs":"¿Qué hizo el movimiento de derechos civiles?","a":[["Fought to end racial discrimination","(Fot tu end reishal discrimineishon)","Luchó para acabar con la discriminación racial"]],"sec":"C: Historia estadounidense reciente","cat":"HISTORIA ESTADOUNIDENSE"},{"n":113,"q":"Martin Luther King, Jr. is famous for many things. Name one.","qp":"(Martin Luzer King Yunior is feimus for meni zings. Neim uan)","qs":"Martin Luther King, Jr. es famoso por muchas cosas. Nombra una.","star":true,"a":[["Fought for civil rights","(Fot for civil raits)","Luchó por los derechos civiles"],["Worked for equality for all Americans","(Uorkt for icualiri for ol americans)","Trabajó por la igualdad para todos los estadounidenses"],["Worked to ensure that people would \"not be judged by the color of their skin, but by the content of their character\"","(Uorkt tu enshur dat pipol ud not bi yodchd bai de color of deir skin, bot bai de content of deir caracter)","Trabajó para asegurar que las personas \"no fueran juzgadas por el color de su piel, sino por el contenido de su carácter\""]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":114,"q":"Why did the United States enter the Persian Gulf War?","qp":"(Uai did di iunaired steits enter de Pershan Golf Uar?)","qs":"¿Por qué Estados Unidos entró en la Guerra del Golfo Pérsico?","a":[["To force the Iraqi military from Kuwait","(Tu fors di Iraki militari from Cuueit)","Para expulsar al ejército iraquí de Kuwait"]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":115,"q":"What major event happened on September 11, 2001 in the United States?","qp":"(Uat meiyor ivent japend on September ileven, tu-tauzand-uan in di iunaired steits?)","qs":"¿Qué evento importante ocurrió el 11 de septiembre de 2001 en los Estados Unidos?","star":true,"a":[["Terrorists attacked the United States","(Terrorists atakt di iunaired steits)","Los terroristas atacaron los Estados Unidos"],["Terrorists took over two planes and crashed them into the World Trade Center in New York City","(Terrorists tuk ouver tu pleins and crasht dem intu de Uorld Treid Center in Niu Iork Ciri)","Los terroristas se apoderaron de dos aviones y los estrellaron contra el World Trade Center en Nueva York"],["Terrorists took over a plane and crashed into the Pentagon in Arlington, Virginia","(Terrorists tuk ouver a plein and crasht intu de Pentagon in Arlinton, Viryinia)","Los terroristas se apoderaron de un avión y se estrellaron contra el Pentágono en Arlington, Virginia"],["Terrorists took over a plane originally aimed at Washington, D.C., and crashed in a field in Pennsylvania","(Terrorists tuk ouver a plein oriyinali eimd at Uashinton Di Ci, and crasht in a fild in Pensilvenia)","Los terroristas se apoderaron de un avión que tenía como objetivo Washington, D.C. y se estrelló en un campo en Pensilvania"]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":116,"q":"Name one U.S. military conflict after the September 11, 2001 attacks.","qp":"(Neim uan iu es militari conflict after de September ileven, tu-tauzand-uan ataks)","qs":"Nombra un conflicto militar estadounidense después de los ataques del 11 de septiembre de 2001.","a":[["(Global) War on Terror","(Global Uar on Terror)","Guerra (global) contra el terrorismo"],["War in Afghanistan","(Uar in Afganistan)","Guerra en Afganistán"],["War in Iraq","(Uar in Irak)","Guerra en Irak"]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":117,"q":"Name one American Indian tribe in the United States.","qp":"(Neim uan American Indian traib in di iunaired steits)","qs":"Mencione una tribu de indios americanos de los Estados Unidos.","a":[["Cherokee","(Cheroki)",""],["Navajo","(Navajo)",""],["Sioux","(Su)",""],["Apache","(Apachi)",""],["Seminole","(Seminoul)",""],["Pueblo","(Pueblo)",""],["Blackfeet","(Blakfit)",""],["Cheyenne","(Shaian)",""],["Chippewa","(Chipeua)",""],["Choctaw","(Choctou)",""],["Creek","(Crik)",""],["Crow","(Crou)",""],["Hopi","(Jopi)",""],["Huron","(Jiuron)",""],["Inupiat","(Inupiat)",""],["Lakota","(Lakota)",""],["Mohawk","(Mojok)",""],["Mohegan","(Mojigan)",""],["Oneida","(Onaida)",""],["Onondaga","(Onondaga)",""],["Seneca","(Seneca)",""],["Teton","(Titon)",""],["Cayuga","(Caiuga)",""]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":118,"q":"Name one example of an American innovation.","qp":"(Neim uan exampol of an American inoveishon)","qs":"Mencione un ejemplo de una innovación estadounidense.","a":[["Light bulb","(Lait bolb)","Bombilla"],["Automobile (cars, combustible engine)","(Oromobil - cars, combostibol enyin)","Automóvil (carros, motor de combustión)"],["Skyscrapers","(Skaiscreipers)","Rascacielos"],["Airplane","(Erplein)","Avión"],["Assembly line","(Asembli lain)","Línea de ensamblaje"],["Landing on the moon","(Landin on de mun)","El aterrizaje en la luna"],["Integrated circuit (IC)","(Integreired serkit)","Circuito integrado (IC)"]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":119,"q":"What is the capital of the United States?","qp":"(Uat is de capirol of di iunaired steits?)","qs":"¿Cuál es la capital de Estados Unidos?","a":[["Washington, D.C.","(Uashinton Di Ci)",""]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":120,"q":"Where is the Statue of Liberty?","qp":"(Uer is de Stachu of Liberti?)","qs":"¿Dónde está la Estatua de la Libertad?","a":[["New York (Harbor)","(Niu Iork Jarbor)","(Puerto de) Nueva York"],["Liberty Island","(Liberti Ailand)","Isla de la Libertad"],["Also acceptable: New Jersey, near New York City, and on the Hudson (River)","(Niu Yersi, nier Niu Iork Ciri, on de Jodson River)","También aceptable: Nueva Jersey, cerca de Nueva York, y en el río Hudson"]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":121,"q":"Why does the flag have 13 stripes?","qp":"(Uai dos de flag jav zertin straips?)","qs":"¿Por qué la bandera tiene 13 franjas?","star":true,"a":[["(Because there were) 13 original colonies","(Bicos der uer zertin oriyinal colonis)","(Porque había) 13 colonias originales"],["(Because the stripes) represent the original colonies","(Bicos de straips represent de oriyinal colonis)","(Porque las rayas) representan las colonias originales"]],"sec":"A: Símbolos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":122,"q":"Why does the flag have 50 stars?","qp":"(Uai dos de flag jav fifti stars?)","qs":"¿Por qué la bandera tiene 50 estrellas?","a":[["(Because there is) one star for each state","(Bicos der is uan star for ich steit)","(Porque hay) una estrella para cada estado"],["(Because) each star represents a state","(Bicos ich star represents a steit)","(Porque) cada estrella representa un estado"],["(Because there are) 50 states","(Bicos der ar fifti steits)","(Porque hay) 50 estados"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":123,"q":"What is the name of the national anthem?","qp":"(Uat is de neim of de nashonal anzem?)","qs":"¿Cómo se llama el himno nacional?","a":[["The Star-Spangled Banner","(De Star-Spangueld Baner)","La Bandera Estrellada"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":124,"q":"The Nation's first motto was \"E Pluribus Unum.\" What does that mean?","qp":"(De neishons ferst moro uas \"E Pluribus Unum\". Uat dos dat min?)","qs":"El primer lema de la nación fue \"E Pluribus Unum\". ¿Qué significa eso?","a":[["Out of many, one","(Aut of meni, uan)","De muchos, uno"],["We all become one","(Ui ol bicom uan)","Todos nos convertimos en uno"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":125,"q":"What is Independence Day?","qp":"(Uat is Independens Dei?)","qs":"¿Qué es el Día de la Independencia?","a":[["A holiday to celebrate U.S. independence (from Britain)","(A jolidei tu celebreit iu es independens from Briten)","Un día festivo para celebrar la independencia de Estados Unidos (de Gran Bretaña)"],["The country's birthday","(De cantris berzdei)","El cumpleaños del país"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":126,"q":"Name three national U.S. holidays.","qp":"(Neim zri nashonal iu es jolideis)","qs":"Nombra tres feriados nacionales de Estados Unidos.","star":true,"a":[["New Year's Day","(Niu Iers Dei)","El Día de Año Nuevo"],["Martin Luther King, Jr. Day","(Martin Luzer King Yunior Dei)","Día de Martin Luther King, Jr."],["Presidents' Day","(Presidents Dei)","El Día de los Presidentes"],["Memorial Day","(Memorial Dei)","Día de la Recordación"],["Independence Day","(Independens Dei)","El Día de la Independencia"],["Labor Day","(Leibor Dei)","Día del Trabajo"],["Columbus Day","(Colombos Dei)","El Día de la Raza (Cristóbal Colón)"],["Veterans Day","(Vererans Dei)","Día de los Veteranos"],["Thanksgiving","(Zanksguivin)","El Día de Acción de Gracias"],["Christmas","(Crismas)","El Día de Navidad"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":127,"q":"What is Memorial Day?","qp":"(Uat is Memorial Dei?)","qs":"¿Qué es el Día de los Caídos?","a":[["A holiday to honor soldiers who died in military service","(A jolidei tu onor soldiers ju daid in militari servis)","Un día festivo para honrar a los soldados que murieron en el servicio militar"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"},{"n":128,"q":"What is Veterans Day?","qp":"(¿Uat is Vererans Dei?)","qs":"¿Qué es el Día de los Veteranos?","a":[["A holiday to honor people in the (U.S.) military","(A jolidei tu onor pipol in de iu es militari)","Un día festivo para honrar a las personas en el ejército (de EE. UU.)"],["A holiday to honor people who have served (in the U.S. military)","(A jolidei tu onor pipol ju jav servd in di iu es militari)","Un día festivo para honrar a las personas que han servido (en el ejército de EE. UU.)"]],"sec":"B: Días festivos","cat":"SÍMBOLOS Y DÍAS FESTIVOS"}];
+
+/* ============ storage ============ */
+const KEY='pecc128v1';
+let mem={};
+const store={
+  get(){ try{ return JSON.parse(localStorage.getItem(KEY))||{} }catch(e){ return mem } },
+  set(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)) }catch(e){ mem=v } }
+};
+const defaults={
+  mode:'cards', showPh:true, showEs:true, hands:false,
+  secQ:6, secA:5, rate:0.85, shuffle:true, sections:'all', onlyMissed:false, examLen:20, voiceURI:''
+};
+let S = Object.assign({}, defaults, store.get().settings||{});
+let ST = store.get().stats || {byQ:{}, sessions:[]};
+function save(){ store.set({settings:S, stats:ST}); }
+
+/* ============ speech ============ */
+let voices=[];
+function loadVoices(){ voices = (window.speechSynthesis? speechSynthesis.getVoices():[])||[]; }
+loadVoices();
+if(window.speechSynthesis) speechSynthesis.onvoiceschanged=()=>{ loadVoices(); if(screen==='settings') Settings(); };
+// keep retrying: iOS often returns [] until after the first utterance
+let vTries=0;
+const vPoll=setInterval(()=>{ loadVoices(); if(voices.length||++vTries>20){ clearInterval(vPoll);
+  if(voices.length&&screen==='settings') Settings(); } },400);
+
+const JUNK=/eloquence|novelty|whisper|bells|boing|bubbles|cellos|deranged|good news|bad news|jester|organ|superstar|trinoids|zarvox|wobble|bahh|albert|fred|junior|ralph|kathy|princess|hysterical|grandma|grandpa|rocko|shelley|sandy|flo|reed/i;
+function voiceScore(v){
+  const n=v.name||'', lang=(v.lang||'').replace('_','-').toLowerCase();
+  if(!lang.startsWith('en')) return -1;
+  let s = lang.startsWith('en-us') ? 100 : (lang.startsWith('en-gb')? 70 : 55);
+  if(/premium|enhanced|neural|natural/i.test(n)) s+=60;
+  if(/compact/i.test(n)) s-=35;
+  if(JUNK.test(n)) s-=300;
+  if(v.localService) s+=8;
+  if(v.default) s+=4;
+  return s;
+}
+function englishVoices(){
+  return voices.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en'))
+               .map(v=>({v,sc:voiceScore(v)}))
+               .sort((a,b)=>b.sc-a.sc).map(x=>x.v);
+}
+function pickVoice(lang){
+  if(lang==='es'){
+    for(const p of ['es-US','es-MX','es-ES','es']){
+      const v=voices.find(v=>v.lang&&v.lang.replace('_','-').toLowerCase().startsWith(p.toLowerCase()));
+      if(v) return v;
+    }
+    return null;
+  }
+  if(S.voiceURI){ const chosen=voices.find(v=>v.voiceURI===S.voiceURI); if(chosen) return chosen; }
+  return englishVoices()[0] || null;
+}
+function voiceLabel(v){
+  let n=v.name.replace(/\s*\((Enhanced|Premium|Compact)\)/i,'').trim();
+  let tag='';
+  if(/premium/i.test(v.name)) tag=' · Premium';
+  else if(/enhanced/i.test(v.name)) tag=' · Enhanced';
+  else if(/compact/i.test(v.name)) tag=' · Compact';
+  return n+tag;
+}
+function stopSpeak(){ try{ speechSynthesis.cancel() }catch(e){} }
+function speak(text, lang, cb){
+  if(!window.speechSynthesis || !text){ cb&&cb(); return; }
+  try{
+    const u=new SpeechSynthesisUtterance(String(text).replace(/\s*\([^)]*\)\s*/g,' ').trim()||String(text));
+    const v=pickVoice(lang||'en'); if(v) u.voice=v;
+    u.lang = v? v.lang : (lang==='es'?'es-US':'en-US');
+    u.rate = S.rate; u.pitch=1;
+    let done=false; const fin=()=>{ if(done)return; done=true; cb&&cb(); };
+    u.onend=fin; u.onerror=fin;
+    speechSynthesis.speak(u);
+    // never depend on onend firing: estimate duration and move on regardless
+    const cps = 13 * Math.max(0.4, S.rate);           // chars per second
+    setTimeout(fin, Math.min(15000, 700 + (u.text.length/cps)*1000));
+  }catch(e){ cb&&cb(); }
+}
+
+let spUnlocked=false;
+function unlockSpeech(){
+  if(spUnlocked||!window.speechSynthesis) return; spUnlocked=true;
+  try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch(e){}
+}
+document.addEventListener('touchstart',unlockSpeech,{once:true});
+document.addEventListener('click',unlockSpeech,{once:true});
+
+/* ============ helpers ============ */
+const $=(h)=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const view=document.getElementById('view');
+const titleEl=document.getElementById('title');
+const backEl=document.getElementById('back');
+const progBar=document.getElementById('progBar');
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function shuffled(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmt(sec){const m=Math.floor(sec/60),s=Math.round(sec%60);return m+':'+String(s).padStart(2,'0')}
+const CATS=[...new Set(DATA.map(d=>d.cat))];
+function qstat(n){ return ST.byQ[n]||{seen:0,right:0,wrong:0}; }
+
+/* ============ router ============ */
+let screen='home', timers=[];
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; stopSpeak();
+  if(typeof clearHands==='function') clearHands(); }
+function later(fn,ms){ const t=setTimeout(fn,ms); timers.push(t); return t; }
+function go(s){ clearTimers(); if(s!=='study'){ keepAwake(false); humOn(false); }
+  screen=s; render(); window.scrollTo(0,0); }
+backEl.onclick=()=>{ if(screen==='home'){} else go('home'); };
+document.getElementById('setBtn').onclick=()=>go('settings');
+document.getElementById('statsBtn').onclick=()=>go('stats');
+
+function render(){
+  backEl.style.visibility = screen==='home' ? 'hidden':'visible';
+  if(screen==='home') Home();
+  else if(screen==='settings') Settings();
+  else if(screen==='stats') Stats();
+  else if(screen==='study') Study();
+  else if(screen==='result') Result();
+  else if(screen==='list') List();
+}
+
+/* ============ home ============ */
+function Home(){
+  titleEl.textContent='Ciudadanía 128'; progBar.style.width='0';
+  const total=DATA.length;
+  const learned=DATA.filter(d=>{const s=qstat(d.n);return s.right>=2&&s.right>s.wrong}).length;
+  const missed=DATA.filter(d=>qstat(d.n).wrong>0).length;
+  view.innerHTML='';
+  view.append($(`<div class="hero">
+     <div class="n">128</div>
+     <h2>Preguntas de Civismo</h2>
+     <p>Práctica para el examen de ciudadanía</p>
+   </div>`));
+
+  view.append($(`<div class="tile">
+     <h3>Tu progreso</h3>
+     <div class="grid">
+       <div class="stat"><b style="color:var(--good)">${learned}</b><span>DOMINADAS</span></div>
+       <div class="stat"><b>${total}</b><span>TOTAL</span></div>
+       <div class="stat"><b style="color:var(--bad)">${missed}</b><span>FALLADAS</span></div>
+     </div>
+   </div>`));
+
+  const modes=[
+    ['cards','🃏','Tarjetas','Lee la pregunta, respóndela en voz alta, voltea y califícate.'],
+    ['choice','✅','Opción múltiple','Elige la respuesta correcta entre 4 opciones.'],
+    ['hands','🎧','Manos libres','Escucha pregunta → pausa → respuesta. Sin tocar el teléfono.'],
+    ['exam','🎓','Examen de práctica','20 preguntas al azar. Necesitas 12 para aprobar.']
+  ];
+  const box=$(`<div class="tile"><h3>Elige cómo practicar</h3><div class="modes"></div></div>`);
+  const mm=box.querySelector('.modes');
+  modes.forEach(([k,em,t,d])=>{
+    const b=$(`<button class="mode${S.mode===k?' on':''}"><div class="em">${em}</div><div><b>${t}</b><span>${d}</span></div></button>`);
+    b.onclick=()=>{ S.mode=k; save(); Home(); };
+    mm.append(b);
+  });
+  view.append(box);
+
+  // deck options
+  const opt=$(`<div class="tile"><h3>Mazo</h3></div>`);
+  const chips=$(`<div class="chips"></div>`);
+  const mk=(label,val)=>{
+    const c=$(`<button class="chip${S.sections===val?' on':''}">${label}</button>`);
+    c.onclick=()=>{S.sections=val;save();Home()}; chips.append(c);
+  };
+  mk('Todas las 128','all');
+  CATS.forEach(c=>mk(c.charAt(0)+c.slice(1).toLowerCase(),c));
+  opt.append(chips);
+  const missCount=DATA.filter(d=>qstat(d.n).wrong>0).length;
+  const rowMiss=$(`<div class="row"><div class="lbl"><b>Solo las que fallé</b><span>${missCount} pregunta${missCount===1?'':'s'} marcada${missCount===1?'':'s'}</span></div></div>`);
+  const swM=$(`<div class="sw${S.onlyMissed?' on':''}"><i></i></div>`);
+  swM.onclick=()=>{S.onlyMissed=!S.onlyMissed;save();Home()}; rowMiss.append(swM); opt.append(rowMiss);
+  const rowSh=$(`<div class="row"><div class="lbl"><b>Mezclar preguntas</b><span>Orden distinto cada vez</span></div></div>`);
+  const swS=$(`<div class="sw${S.shuffle?' on':''}"><i></i></div>`);
+  swS.onclick=()=>{S.shuffle=!S.shuffle;save();Home()}; rowSh.append(swS); opt.append(rowSh);
+  view.append(opt);
+
+  const n=buildDeck().length;
+  const start=$(`<button class="btn gold">Empezar · ${n} pregunta${n===1?'':'s'}</button>`);
+  start.onclick=()=>{ if(!n){alert('No hay preguntas en este mazo. Cambia el filtro.');return} startSession(); };
+  view.append(start);
+  const browse=$(`<button class="btn ghost sm">📖 Ver las 128 preguntas en una sola lista</button>`);
+  browse.onclick=()=>go('list');
+  view.append(browse);
+  view.append($(`<p class="small">Consejo: en el iPhone toca <b>Compartir → Añadir a pantalla de inicio</b> para usarla como app.</p>`));
+}
+
+/* ============ deck ============ */
+function buildDeck(){
+  let d=DATA.slice();
+  if(S.sections!=='all') d=d.filter(x=>x.cat===S.sections);
+  if(S.onlyMissed){ const m=d.filter(x=>qstat(x.n).wrong>0); if(m.length) d=m; }
+  if(S.mode==='exam'){ d=shuffled(DATA).slice(0,S.examLen); return d; }
+  if(S.shuffle) d=shuffled(d);
+  return d;
+}
+
+/* ============ session ============ */
+let sess=null;
+function startSession(){
+  const deck=buildDeck();
+  sess={ deck, i:0, right:0, wrong:0, t0:Date.now(), mode:S.mode, revealed:false, picked:null,
+         answered:false, phase:'q', paused:false, cd:0, cdCb:null, cdEnd:0, cdLeft:0 };
+  if(S.mode==='hands'){
+    clearTimers(); screen='study'; keepAwake(true); humOn(true);
+    backEl.style.visibility='visible'; render(); handsStep();
+  } else go('study');
+}
+function record(n, ok){
+  const s=qstat(n); s.seen++;
+  if(ok===true) s.right++; else if(ok===false) s.wrong++;
+  ST.byQ[n]=s; save();
+}
+function next(){
+  sess.revealed=false; sess.picked=null; sess.answered=false;
+  sess.i++;
+  if(sess.i>=sess.deck.length){ finish(); return; }
+  go('study');
+}
+function finish(){
+  sess.secs=(Date.now()-sess.t0)/1000;
+  ST.sessions.unshift({d:new Date().toISOString().slice(0,10), m:sess.mode, t:sess.deck.length,
+                       r:sess.right, w:sess.wrong, s:Math.round(sess.secs)});
+  ST.sessions=ST.sessions.slice(0,40); save();
+  go('result');
+}
+
+/* ============ study ============ */
+function Study(){
+  const q=sess.deck[sess.i];
+  titleEl.textContent = ({cards:'Tarjetas',choice:'Opción múltiple',hands:'Manos libres',exam:'Examen'})[sess.mode];
+  progBar.style.width = ((sess.i)/sess.deck.length*100)+'%';
+  view.innerHTML='';
+
+  const meta=$(`<div class="qmeta"><span>Pregunta ${q.n}</span><span class="sec">${esc(q.sec)}</span></div>`);
+  view.append(meta);
+
+  const card=$(`<div class="card"></div>`);
+  card.append($(`<div class="q">${esc(q.q)}</div>`));
+  if(S.showPh && q.qp) card.append($(`<div class="ph">${esc(q.qp)}</div>`));
+  if(S.showEs && q.qs) card.append($(`<div class="es">${esc(q.qs)}</div>`));
+  if(q.live) card.append($(`<div class="warn">⚠️ ${esc(q.live)}</div>`));
+  const sp=$(`<button class="speak">🔊 Escuchar pregunta</button>`);
+  sp.onclick=()=>{stopSpeak();speak(q.q,'en')};
+  const spWrap=document.createElement('div'); spWrap.appendChild(sp); card.appendChild(spWrap);
+  view.append(card);
+
+  if(sess.mode==='choice'||sess.mode==='exam') ChoiceUI(q);
+  else if(sess.mode==='hands') HandsUI(q);
+  else CardUI(q);
+
+  view.append($(`<div class="count">${sess.i+1} / ${sess.deck.length}${sess.mode==='hands'?'':` · ✓ ${sess.right} · ✗ ${sess.wrong}`}</div>`));
+}
+
+function answersHTML(q, limit){
+  const list=limit? q.a.slice(0,limit) : q.a;
+  let h=`<div class="ans"><h4>Respuesta${q.a.length>1?'s aceptadas':''}</h4>`;
+  list.forEach(a=>{
+    h+=`<div class="ai"><div class="en">${esc(a[0])}</div>`;
+    if(S.showPh&&a[1]) h+=`<div class="p">${esc(a[1])}</div>`;
+    if(S.showEs&&a[2]) h+=`<div class="s">${esc(a[2])}</div>`;
+    h+=`</div>`;
+  });
+  if(limit && q.a.length>limit) h+=`<div class="more">+ ${q.a.length-limit} respuestas más aceptadas</div>`;
+  h+=`</div>`;
+  return h;
+}
+
+function CardUI(q){
+  if(!sess.revealed){
+    const b=$(`<button class="btn">Ver respuesta</button>`);
+    b.onclick=()=>{ sess.revealed=true; Study(); };
+    view.append(b);
+    return;
+  }
+  view.append($(answersHTML(q,0)));
+  const g=$(`<div class="grade"></div>`);
+  const no=$(`<button class="g-no">✗ No la sabía</button>`);
+  const yes=$(`<button class="g-yes">✓ La sabía</button>`);
+  no.onclick=()=>{record(q.n,false);sess.wrong++;next()};
+  yes.onclick=()=>{record(q.n,true);sess.right++;next()};
+  g.append(no,yes); view.append(g);
+}
+
+/* ---------- manos libres: auto-runner ---------- */
+let handsTO=null, cdIV=null, wakeLock=null;
+function clearHands(){ if(handsTO){clearTimeout(handsTO);handsTO=null} if(cdIV){clearInterval(cdIV);cdIV=null} }
+
+async function keepAwake(on){
+  try{
+    if(on){ if(!wakeLock && navigator.wakeLock){ wakeLock=await navigator.wakeLock.request('screen');
+              wakeLock.addEventListener('release',()=>{wakeLock=null}); } }
+    else if(wakeLock){ const w=wakeLock; wakeLock=null; await w.release(); }
+  }catch(e){}
+}
+// silent looping audio keeps iOS from suspending the page between utterances
+let hum=null;
+function humOn(on){
+  try{
+    if(on){
+      if(!hum){
+        hum=new Audio('data:audio/wav;base64,UklGRqQMAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YYAMAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==');
+        hum.loop=true; hum.volume=0.001;
+      }
+      hum.play().catch(()=>{});
+    } else if(hum){ hum.pause(); }
+  }catch(e){}
+}
+
+function startCountdown(secs, cb){
+  clearHands();
+  sess.cdCb=cb; sess.cdEnd=Date.now()+secs*1000; sess.cd=Math.ceil(secs);
+  paintCd();
+  cdIV=setInterval(()=>{
+    if(sess.paused) return;
+    const left=(sess.cdEnd-Date.now())/1000;
+    sess.cd=Math.max(0,Math.ceil(left)); paintCd();
+    if(left<=0){ clearHands(); sess.cdCb=null; cb(); }
+  },200);
+}
+function paintCd(){
+  const el=document.getElementById('cd'); if(!el) return;
+  if(sess.paused){ el.textContent='⏸ En pausa'; el.className='cd paused'; return; }
+  if(sess.cdCb==null && !cdIV){ el.textContent='🔊 Reproduciendo…'; el.className='cd'; return; }
+  el.textContent = (sess.phase==='q' ? 'Responde en voz alta… ' : 'Siguiente pregunta en ') + sess.cd + 's';
+  el.className='cd';
+}
+function pauseHands(){
+  sess.paused=true;
+  sess.cdLeft = sess.cdEnd ? Math.max(0,(sess.cdEnd-Date.now())/1000) : 0;
+  clearHands(); stopSpeak();
+}
+function resumeHands(){
+  sess.paused=false;
+  if(sess.cdCb && sess.cdLeft>0.2){ const cb=sess.cdCb; startCountdown(sess.cdLeft, cb); }
+  else handsStep();
+}
+function handsStep(){
+  if(screen!=='study'||!sess||sess.paused) return;
+  const q=sess.deck[sess.i];
+  if(!q){ finish(); return; }
+  const advance=()=>{
+    record(q.n,null); sess.i++; sess.phase='q'; sess.cdCb=null;
+    if(sess.i>=sess.deck.length){ finish(); return; }
+    render(); handsStep();
+  };
+  if(sess.phase==='q'){
+    sess.cdCb=null; paintCd();
+    speak(q.q,'en',()=>{
+      if(screen!=='study'||sess.paused) return;
+      startCountdown(S.secQ, ()=>{ sess.phase='a'; render(); handsStep(); });
+    });
+  } else {
+    sess.cdCb=null; paintCd();
+    speak(q.a.slice(0,2).map(a=>a[0]).join('. '),'en',()=>{
+      if(screen!=='study'||sess.paused) return;
+      startCountdown(S.secA, advance);
+    });
+  }
+}
+function HandsUI(q){
+  if(sess.phase==='a') view.append($(answersHTML(q,3)));
+  view.append($(`<div class="cd" id="cd"></div>`));
+  const bar=$(`<div class="tbar"></div>`);
+  const pb=$(`<button>${sess.paused?'▶︎ Reanudar':'⏸ Pausar'}</button>`);
+  const nx=$(`<button>Saltar ›</button>`);
+  pb.onclick=()=>{ if(sess.paused){ resumeHands(); } else { pauseHands(); } render(); };
+  nx.onclick=()=>{ clearHands(); stopSpeak(); sess.cdCb=null; record(q.n,null);
+    sess.i++; sess.phase='q';
+    if(sess.i>=sess.deck.length){ finish(); return; }
+    render(); handsStep(); };
+  bar.append(pb,nx); view.append(bar);
+  paintCd();
+}
+
+function ChoiceUI(q){
+  if(!sess.opts || sess.optsFor!==q.n){
+    const correct=q.a[Math.floor(Math.random()*q.a.length)][0];
+    const pool=DATA.filter(d=>d.n!==q.n && d.cat===q.cat);
+    const wide=DATA.filter(d=>d.n!==q.n);
+    const bad=[]; const seen=new Set([correct.toLowerCase()]);
+    const tryAdd=(src)=>{ for(const d of shuffled(src)){ if(bad.length>=3) break;
+        const c=d.a[Math.floor(Math.random()*d.a.length)][0];
+        if(!c||seen.has(c.toLowerCase()))continue; seen.add(c.toLowerCase()); bad.push(c); } };
+    tryAdd(pool); if(bad.length<3) tryAdd(wide);
+    sess.opts=shuffled([correct,...bad]); sess.correct=correct; sess.optsFor=q.n;
+  }
+  const box=$(`<div class="opts"></div>`);
+  sess.opts.forEach(o=>{
+    const b=$(`<button class="opt">${esc(o)}</button>`);
+    if(sess.answered){
+      if(o===sess.correct) b.className='opt right';
+      else if(o===sess.picked) b.className='opt wrong';
+    }
+    b.onclick=()=>{
+      if(sess.answered) return;
+      sess.answered=true; sess.picked=o;
+      const ok = o===sess.correct;
+      record(q.n, ok); ok?sess.right++:sess.wrong++;
+      Study();
+      if(ok && S.secA<=1){ next(); }
+    };
+    box.append(b);
+  });
+  view.append(box);
+  if(sess.answered){
+    view.append($(answersHTML(q,3)));
+    const b=$(`<button class="btn">${sess.i+1===sess.deck.length?'Ver resultado':'Siguiente ›'}</button>`);
+    b.onclick=()=>{ sess.opts=null; next(); };
+    view.append(b);
+  }
+}
+
+/* ============ result ============ */
+function Result(){
+  titleEl.textContent='Resultado'; progBar.style.width='100%';
+  const tot=sess.deck.length, pct=tot?Math.round(sess.right/tot*100):0;
+  if(sess.mode==='hands'){
+    view.innerHTML='';
+    view.append($(`<div class="tile res"><div class="big pass">${tot}</div>
+      <p style="margin:8px 0 0;font-size:18px;font-weight:600">preguntas escuchadas</p>
+      <p class="small" style="margin-top:6px">Tiempo: ${fmt(sess.secs)}</p></div>`));
+    const a=$(`<button class="btn gold">Escuchar otra vez</button>`); a.onclick=()=>startSession();
+    const h=$(`<button class="btn ghost sm">Volver al inicio</button>`); h.onclick=()=>go('home');
+    view.append(a,h); return;
+  }
+  const isExam=sess.mode==='exam';
+  const pass = isExam ? sess.right>=12 : pct>=60;
+  view.innerHTML='';
+  view.append($(`<div class="tile res">
+    <div class="big ${pass?'pass':'fail'}">${sess.right}/${tot}</div>
+    <p style="margin:8px 0 0;font-size:18px;font-weight:600">${isExam?(pass?'¡Aprobado! 🎉':'Sigue practicando'):(pct+'% correcto')}</p>
+    <p class="small" style="margin-top:6px">${isExam?'En el examen real necesitas 12 de 20 correctas.':''}</p>
+  </div>`));
+  view.append($(`<div class="grid">
+    <div class="stat"><b style="color:var(--good)">${sess.right}</b><span>CORRECTAS</span></div>
+    <div class="stat"><b style="color:var(--bad)">${sess.wrong}</b><span>FALLADAS</span></div>
+    <div class="stat"><b>${fmt(sess.secs)}</b><span>TIEMPO</span></div>
+  </div>`));
+  const again=$(`<button class="btn gold">Practicar otra vez</button>`); again.onclick=()=>startSession();
+  const missed=$(`<button class="btn ghost sm">Repasar solo las falladas</button>`);
+  missed.onclick=()=>{ S.onlyMissed=true; save(); startSession(); };
+  const home=$(`<button class="btn ghost sm">Volver al inicio</button>`); home.onclick=()=>go('home');
+  view.append(again,missed,home);
+}
+
+/* ============ browse all ============ */
+let listQuery='', listOpen={};
+function List(){
+  titleEl.textContent='Las 128 preguntas'; progBar.style.width='0';
+  view.innerHTML='';
+  const sb=$(`<input class="search" type="search" placeholder="Buscar en inglés o español…" value="${esc(listQuery)}">`);
+  sb.oninput=()=>{ listQuery=sb.value; const p=sb.selectionStart; List();
+                   const nb=view.querySelector('.search'); nb.focus(); try{nb.setSelectionRange(p,p)}catch(e){} };
+  view.append(sb);
+  const qy=listQuery.trim().toLowerCase();
+  const items=DATA.filter(d=>!qy || (d.q+' '+d.qs+' '+d.a.map(a=>a[0]+' '+a[2]).join(' ')).toLowerCase().includes(qy));
+  view.append($(`<p class="small" style="margin:-4px 0 0">${items.length} de 128 · toca una pregunta para ver la respuesta</p>`));
+  let lastSec='';
+  items.forEach(d=>{
+    if(d.sec!==lastSec && !qy){ lastSec=d.sec; view.append($(`<h3 class="secH">${esc(d.cat)} · ${esc(d.sec)}</h3>`)); }
+    const it=$(`<div class="li"></div>`);
+    const hd=$(`<button class="lih"><span class="ln">${d.n}</span><span class="lq">${esc(d.q)}</span></button>`);
+    hd.onclick=()=>{ listOpen[d.n]=!listOpen[d.n]; List(); };
+    it.append(hd);
+    if(listOpen[d.n]){
+      let h=`<div class="lb">`;
+      if(d.qp) h+=`<div class="ph">${esc(d.qp)}</div>`;
+      if(d.qs) h+=`<div class="es">${esc(d.qs)}</div>`;
+      if(d.live) h+=`<div class="warn">⚠️ ${esc(d.live)}</div>`;
+      h+=`</div>`+answersHTML(d,0);
+      const holder=document.createElement('div');
+      holder.innerHTML=h;
+      while(holder.firstChild) it.appendChild(holder.firstChild);
+      const sp=$(`<button class="speak" style="margin:0 14px 14px">🔊 Escuchar</button>`);
+      sp.onclick=(ev)=>{ev.stopPropagation();stopSpeak();
+        speak(d.q+'. '+d.a.slice(0,2).map(a=>a[0]).join('. '),'en')};
+      it.appendChild(sp);
+    }
+    view.append(it);
+  });
+  const home=$(`<button class="btn ghost">Volver</button>`); home.onclick=()=>go('home'); view.append(home);
+}
+
+/* ============ settings ============ */
+function Settings(){
+  titleEl.textContent='Ajustes'; progBar.style.width='0';
+  view.innerHTML='';
+
+  const t1=$(`<div class="tile"><h3>Qué se muestra</h3></div>`);
+  const tog=(label,sub,key)=>{
+    const r=$(`<div class="row"><div class="lbl"><b>${label}</b><span>${sub}</span></div></div>`);
+    const sw=$(`<div class="sw${S[key]?' on':''}"><i></i></div>`);
+    sw.onclick=()=>{S[key]=!S[key];save();Settings()}; r.append(sw); return r;
+  };
+  t1.append(tog('Guía de pronunciación','El texto en cursiva dorada','showPh'));
+  t1.append(tog('Traducción al español','Debajo de cada frase en inglés','showEs'));
+  view.append(t1);
+
+  const t2=$(`<div class="tile"><h3>Tiempos y voz</h3></div>`);
+  const stepper=(label,sub,key,min,max,stp,suffix)=>{
+    const r=$(`<div class="row"><div class="lbl"><b>${label}</b><span>${sub}</span></div></div>`);
+    const s=$(`<div class="step"></div>`);
+    const m=$(`<button>−</button>`), p=$(`<button>+</button>`);
+    const v=$(`<div class="v">${(Math.round(S[key]*100)/100)}${suffix}</div>`);
+    m.onclick=()=>{S[key]=Math.max(min,Math.round((S[key]-stp)*100)/100);save();Settings()};
+    p.onclick=()=>{S[key]=Math.min(max,Math.round((S[key]+stp)*100)/100);save();Settings()};
+    s.append(m,v,p); r.append(s); return r;
+  };
+  t2.append(stepper('Pausa para responder','Segundos entre la pregunta y la respuesta','secQ',1,30,1,'s'));
+  t2.append(stepper('Pausa antes de seguir','Segundos antes de la próxima pregunta','secA',0,20,1,'s'));
+  t2.append(stepper('Velocidad de la voz','1.0 = normal','rate',0.5,1.5,0.05,'×'));
+  const test=$(`<button class="btn ghost sm">🔊 Probar la voz</button>`);
+  test.onclick=()=>{stopSpeak();speak('Who is the Commander in Chief of the United States military?','en')};
+  t2.append(test);
+  view.append(t2);
+
+  const evs = englishVoices();
+  const t2b=$(`<div class="tile"><h3>Voz en inglés</h3></div>`);
+  if(!evs.length){
+    t2b.append($(`<p class="small" style="text-align:left">Todavía no se detectan voces.
+      Toca <b>Probar la voz</b> arriba y vuelve a entrar aquí.</p>`));
+  } else {
+    const auto=$(`<button class="vrow${S.voiceURI?'':' on'}">
+      <span class="vck">${S.voiceURI?'':'✓'}</span>
+      <span class="vn"><b>Automática</b><span>Usa la mejor voz disponible (${esc(voiceLabel(evs[0]))})</span></span></button>`);
+    auto.onclick=()=>{ S.voiceURI=''; save(); Settings();
+      stopSpeak(); speak('Who signs bills to become laws?','en'); };
+    t2b.append(auto);
+    evs.forEach(v=>{
+      const on = S.voiceURI===v.voiceURI;
+      const good = /premium|enhanced|neural|natural/i.test(v.name);
+      const r=$(`<button class="vrow${on?' on':''}">
+        <span class="vck">${on?'✓':''}</span>
+        <span class="vn"><b>${esc(voiceLabel(v))}${good?' ⭐️':''}</b><span>${esc(v.lang)}</span></span>
+        <span class="vpl">🔊</span></button>`);
+      r.onclick=()=>{ S.voiceURI=v.voiceURI; save(); Settings();
+        stopSpeak(); speak('Who signs bills to become laws?','en'); };
+      t2b.append(r);
+    });
+  }
+  view.append(t2b);
+  view.append($(`<div class="tile"><h3>¿Suena robótica?</h3>
+    <p class="small" style="text-align:left;margin:0">Las voces marcadas <b>Compact</b> son las básicas de Apple y suenan
+    metálicas. Descarga una mejor — es gratis:<br><br>
+    <b>Ajustes → Accesibilidad → Contenido leído → Voces → English</b><br>
+    y elige una que diga <b>Enhanced</b> o <b>Premium</b> (Ava, Allison, Evan, Zoe).
+    Después vuelve aquí y selecciónala arriba — aparecerán con ⭐️.</p></div>`));
+
+  const t3=$(`<div class="tile"><h3>Datos</h3></div>`);
+  const rst=$(`<button class="btn ghost sm">Borrar todo mi progreso</button>`);
+  rst.onclick=()=>{ if(confirm('¿Borrar todas las estadísticas y empezar de cero?')){ ST={byQ:{},sessions:[]}; save(); go('home'); } };
+  t3.append(rst); view.append(t3);
+
+  const done=$(`<button class="btn">Listo</button>`); done.onclick=()=>go('home'); view.append(done);
+}
+
+/* ============ stats ============ */
+function Stats(){
+  titleEl.textContent='Estadísticas'; progBar.style.width='0';
+  view.innerHTML='';
+  const ss=ST.sessions;
+  const tries=ss.length;
+  const tot=ss.reduce((a,b)=>a+b.t,0), rt=ss.reduce((a,b)=>a+b.r,0);
+  const secs=ss.reduce((a,b)=>a+b.s,0);
+  const pct=tot?Math.round(rt/tot*100):0;
+  view.append($(`<div class="grid">
+    <div class="stat"><b>${tries}</b><span>SESIONES</span></div>
+    <div class="stat"><b style="color:${pct>=60?'var(--good)':'var(--gold)'}">${pct}%</b><span>ACIERTO</span></div>
+    <div class="stat"><b>${fmt(secs)}</b><span>TIEMPO TOTAL</span></div>
+  </div>`));
+  view.append($(`<div class="grid">
+    <div class="stat"><b>${tot}</b><span>RESPONDIDAS</span></div>
+    <div class="stat"><b style="color:var(--good)">${rt}</b><span>CORRECTAS</span></div>
+    <div class="stat"><b style="color:var(--bad)">${tot-rt}</b><span>FALLADAS</span></div>
+  </div>`));
+
+  const map=$(`<div class="tile"><h3>Cada pregunta</h3>
+     <p class="small" style="text-align:left;margin:-4px 0 10px">
+     <span style="color:#c8f2d8">■</span> dominada &nbsp;
+     <span style="color:#f5dfae">■</span> en progreso &nbsp;
+     <span style="color:#f7c4c4">■</span> fallada &nbsp;
+     <span style="color:#ffffff70">■</span> sin practicar</p></div>`);
+  const bars=$(`<div class="bars"></div>`);
+  DATA.forEach(d=>{
+    const s=qstat(d.n); let c='';
+    if(s.seen){ if(s.wrong===0&&s.right>=2)c='ok'; else if(s.right>s.wrong)c='mid'; else c='bad'; }
+    const b=$(`<div class="qb ${c}">${d.n}</div>`);
+    b.title=d.q; bars.append(b);
+  });
+  map.append(bars); view.append(map);
+
+  if(ss.length){
+    const h=$(`<div class="tile"><h3>Historial</h3><div class="hist"></div></div>`);
+    const hh=h.querySelector('.hist');
+    const names={cards:'Tarjetas',choice:'Opción múltiple',hands:'Manos libres',exam:'Examen'};
+    ss.slice(0,12).forEach(s=>{
+      hh.append($(`<div><span>${s.d} · ${names[s.m]||s.m}</span><span style="color:${s.r/s.t>=.6?'var(--good)':'var(--bad)'}">${s.r}/${s.t} · ${fmt(s.s)}</span></div>`));
+    });
+    view.append(h);
+  }
+  const home=$(`<button class="btn ghost">Volver</button>`); home.onclick=()=>go('home'); view.append(home);
+}
+
+/* ============ go ============ */
+window.addEventListener('pagehide',()=>{ stopSpeak(); keepAwake(false); humOn(false); });
+document.addEventListener('visibilitychange',()=>{
+  const inHands = screen==='study' && sess && sess.mode==='hands';
+  if(document.hidden){ clearTimers(); if(inHands && !sess.paused){ pauseHands(); render(); } }
+  else if(inHands){ keepAwake(true); humOn(true); }
+});
+render();
+</script>
+</body>
+</html>
